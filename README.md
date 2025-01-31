@@ -13,7 +13,7 @@ List of sims:
 3. ``sim_clean``
 4. ``sim_onearm_clean``
 
-To generated 50 episodes of scripted data, run:
+To generate 50 episodes of scripted data, run:
 ```
     cd scripts
     python3 record_sim_episodes.py \
@@ -22,7 +22,7 @@ To generated 50 episodes of scripted data, run:
     --num_episodes 50
 ```
 
-or for onearm task, 
+or single-arm task, 
 
 ```
     cd scripts
@@ -32,8 +32,10 @@ or for onearm task,
     --num_episodes 50
 ```
 
-To can add the flag ``--onscreen_render`` to see real-time rendering.
-To visualize the episode after it is collected, run
+You can add the flag ``--onscreen_render`` to see real-time rendering.
+
+
+To visualize the episode after collection, run
 ```
     cd scripts
     python3 visualize_episodes.py --dataset_dir <data save dir> --episode_idx 0
