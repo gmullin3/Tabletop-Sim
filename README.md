@@ -1,5 +1,5 @@
-# Tabletop-SIM: Extended Simulation for ACT or other IL methods
-This repo contains the implementation of simulation from Original ACT, added more simulation.
+# Tabletop-SIM: Extended Simulation from ACT for Bimanual BC.
+This repo cloned the implementation of simulation from Original ACT, added more simulation and support 4 types of action space.
 
 ### Installation
     pip install -r requirements.txt
@@ -13,7 +13,7 @@ List of sims:
 3. ``sim_clean``
 4. ``sim_onearm_clean``
 
-To generated 50 episodes of scripted data, run:
+To generate 50 episodes of scripted data, run:
 ```
     cd scripts
     python3 record_sim_episodes.py \
@@ -22,7 +22,7 @@ To generated 50 episodes of scripted data, run:
     --num_episodes 50
 ```
 
-or for onearm task, 
+or single-arm task, 
 
 ```
     cd scripts
@@ -32,13 +32,27 @@ or for onearm task,
     --num_episodes 50
 ```
 
-To can add the flag ``--onscreen_render`` to see real-time rendering.
-To visualize the episode after it is collected, run
+You can add the flag ``--onscreen_render`` to see real-time rendering.
+
+
+To visualize the episode after collection, run
 ```
     cd scripts
     python3 visualize_episodes.py --dataset_dir <data save dir> --episode_idx 0
 ```
 ### Simulation in detail
+
+**sim_transfer_cube_scripted**
+
+Tranfer the red cube from right to left.
+
+https://github.com/user-attachments/assets/81e09238-0f57-4d5e-bc63-4442895a9e0d
+
+**sim_insertion_scripted**
+
+Insert the peg from right to left.
+
+https://github.com/user-attachments/assets/d813cf6b-8bba-4a48-8a8f-0785facd1d00
 
 **sim_clean**
 
