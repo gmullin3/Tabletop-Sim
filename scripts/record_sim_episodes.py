@@ -52,7 +52,8 @@ def main(args):
         raise NotImplementedError
 
     success = []
-    for episode_idx in range(num_episodes):
+    episode_idx = 0
+    while episode_idx < num_episodes:
         print(f'{episode_idx=}')
         print('Rollout out EE space scripted policy')
         # setup the environment
@@ -221,7 +222,6 @@ def main(args):
         data_dict = {
             '/observations/qpos': [],
             '/observations/qvel': [],
-            '/observations/state': [],
             '/observations/instructions': [],
             '/action': [],
             '/actions/joint_pos' : [],
@@ -231,13 +231,16 @@ def main(args):
             '/actions/ee_rpy_pos' : [],
             '/actions/ee_rpy_vel' : [],
         }
+        if task_name == 'sim_clean':
+            data_dict['/observations/state'] = []
+        print(camera_names)
         for cam_name in camera_names:
             data_dict[f'/observations/images/{cam_name}'] = []
 
         # because the replaying, there will be eps_len + 1 actions and eps_len + 2 timesteps
         # truncate here to be consistent
         joint_traj = joint_traj[1:-1]
-        joint_vel_traj = joint_vel_
+        joint_vel_traj = joint_vel_traj[1:]
         episode_replay = episode_replay[1:-1]
         ee_pos_traj = ee_pos_traj[1:-1]
         ee_vel_traj = ee_vel_traj[1:]
@@ -298,8 +301,10 @@ def main(args):
             action_ee_rpy_pos = actions.create_dataset('ee_rpy_pos', (max_timesteps, 14))
             action_ee_rpy_vel = actions.create_dataset('ee_rpy_vel', (max_timesteps, 14))
             for name, array in data_dict.items():
+                print(name)
                 root[name][...] = array
         print(f'Saving: {time.time() - t0:.1f} secs\n')
+        episode_idx += 1
 
     print(f'Saved to {dataset_dir}')
     print(f'Success: {np.sum(success)} / {len(success)}')

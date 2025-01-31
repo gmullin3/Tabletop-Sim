@@ -848,7 +848,7 @@ def test_policy(task_name):
         episode = [ts]
         if onscreen_render:
             ax = plt.subplot()
-            plt_img = ax.imshow(ts.observation['images']['angle'])
+            plt_img = ax.imshow(ts.observation['images']['left'])
             plt.ion()
 
         policy = InsertionPolicy(inject_noise)
@@ -857,7 +857,7 @@ def test_policy(task_name):
             ts = env.step(action)
             episode.append(ts)
             if onscreen_render:
-                plt_img.set_data(ts.observation['images']['angle'])
+                plt_img.set_data(ts.observation['images']['left'])
                 plt.pause(0.02)
         plt.close()
 
