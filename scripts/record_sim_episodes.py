@@ -9,6 +9,8 @@ from tabletop.constants import PUPPET_GRIPPER_POSITION_NORMALIZE_FN, SIM_TASK_CO
 from tabletop.ee_sim_env import make_ee_sim_env
 from tabletop.sim_env import make_sim_env, BOX_POSE
 from tabletop.scripted_policy import PickAndTransferPolicy, InsertionPolicy, CleanPolicy
+from tabletop.wrappers import quat_to_rpy, rpy_to_quat
+from pyquaternion import Quaternion
 
 import IPython
 e = IPython.embed
@@ -39,10 +41,13 @@ def main(args):
     camera_names = SIM_TASK_CONFIGS[task_name]['camera_names']
     if task_name == 'sim_transfer_cube_scripted':
         policy_cls = PickAndTransferPolicy
+        episode_inst = 'transfer the cube'
     elif task_name == 'sim_insertion_scripted':
         policy_cls = InsertionPolicy
+        episode_inst = 'insert the peg'
     elif task_name == 'sim_clean':
         policy_cls = CleanPolicy
+        episode_inst = 'clean the table'
     else:
         raise NotImplementedError
 
@@ -78,6 +83,40 @@ def main(args):
             print(f"{episode_idx=} Failed")
 
         joint_traj = [ts.observation['qpos'] for ts in episode]
+
+        joint_vel_traj = []
+        for i in range(len(episode) - 1):
+            delta = episode[i+1].observation['qpos'] - episode[i].observation['qpos']
+            delta[-1] = episode[i+1].observation['qpos'][-1]
+            joint_vel_traj.append(delta)
+
+        ee_vel_traj = []
+        for i in range(len(episode) - 1):
+            delta = episode[i+1].observation['ee_pos'] - episode[i].observation['ee_pos']
+            delta[-1] = episode[i+1].observation['ee_pos'][-1]
+            ee_vel_traj.append(delta)
+
+        ee_pos_traj = [ts.observation['ee_pos'] for ts in episode]
+
+        ee_rpy_pos_traj = [ts.observation['ee_rpy_pos'] for ts in episode]
+
+        ee_rpy_vel_traj = []
+        for i in range(len(ee_vel_traj)):
+            left_prev_back_quat = Quaternion(episode[i].observation['ee_pos'][3:7]).conjugate
+            left_next_quat = Quaternion(episode[i+1].observation['ee_pos'][3:7]) 
+            left_delta_quat =  (left_prev_back_quat * left_next_quat).elements
+            left_delta_rpy = quat_to_rpy(*left_delta_quat)
+
+            right_prev_back_quat = Quaternion(episode[i].observation['ee_pos'][11:15]).conjugate
+            right_next_quat = Quaternion(episode[i+1].observation['ee_pos'][11:15]) 
+            right_delta_quat =  (right_prev_back_quat * right_next_quat).elements
+            right_delta_rpy = quat_to_rpy(*right_delta_quat)
+
+            delta = np.concatenate([left_ee_vel_traj[i][0:3], delta_rpy, [ee_vel_traj[i][-1]]])
+            ee_rpy_vel_traj.append(delta)
+
+        inst_traj = episode_inst
+
         # replace gripper pose with gripper control
         gripper_ctrl_traj = [ts.observation['gripper_ctrl'] for ts in episode]
         for joint, ctrl in zip(joint_traj, gripper_ctrl_traj):
@@ -85,6 +124,37 @@ def main(args):
             right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
             joint[6] = left_ctrl
             joint[6+7] = right_ctrl
+
+        for joint, ctrl in zip(joint_vel_traj, gripper_ctrl_traj):
+            left_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[0])
+            right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
+            joint[6] = left_ctrl
+            joint[6+7] = right_ctrl
+
+        for ee, ctrl in zip(ee_rpy_pos_traj, gripper_ctrl_traj):
+            left_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[0])
+            right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
+            ee[6] = left_ctrl
+            ee[6+7] = right_ctrl
+
+        for ee, ctrl in zip(ee_rpy_vel_traj, gripper_ctrl_traj):
+            left_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[0])
+            right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
+            ee[6] = left_ctrl
+            # print(ee)
+            ee[6+7] = right_ctrl
+
+        for ee, ctrl in zip(ee_pos_traj, gripper_ctrl_traj):
+            left_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[0])
+            right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
+            ee[7] = left_ctrl
+            ee[7+8] = right_ctrl
+
+        for ee, ctrl in zip(ee_vel_traj, gripper_ctrl_traj):
+            left_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[0])
+            right_ctrl = PUPPET_GRIPPER_POSITION_NORMALIZE_FN(ctrl[2])
+            ee[7] = left_ctrl
+            ee[7+8] = right_ctrl
 
         subtask_info = episode[0].observation['env_state'].copy() # box pose at step 0
         if task_name == 'sim_clean':
@@ -155,6 +225,12 @@ def main(args):
             '/observations/state': [],
             '/observations/instructions': [],
             '/action': [],
+            '/actions/joint_pos' : [],
+            '/actions/joint_vel' : [],
+            '/actions/ee_pos' : [],
+            '/actions/ee_vel' : [],
+            '/actions/ee_rpy_pos' : [],
+            '/actions/ee_rpy_vel' : [],
         }
         for cam_name in camera_names:
             data_dict[f'/observations/images/{cam_name}'] = []
@@ -162,20 +238,37 @@ def main(args):
         # because the replaying, there will be eps_len + 1 actions and eps_len + 2 timesteps
         # truncate here to be consistent
         joint_traj = joint_traj[1:-1]
+        joint_vel_traj = joint_vel_
         episode_replay = episode_replay[1:-1]
+        ee_pos_traj = ee_pos_traj[1:-1]
+        ee_vel_traj = ee_vel_traj[1:]
+        ee_rpy_pos_traj = ee_rpy_pos_traj[1:-1]
+        ee_rpy_vel_traj = ee_rpy_vel_traj[1:]
+        # inst_traj[1:-1]
 
         # len(joint_traj) i.e. actions: max_timesteps
         # len(episode_replay) i.e. time steps: max_timesteps + 1
         max_timesteps = len(joint_traj)
         while joint_traj:
             action = joint_traj.pop(0)
+            joint_vel_action = joint_vel_traj.pop(0)
+            ee_pos_action = ee_pos_traj.pop(0)
+            ee_vel_action = ee_vel_traj.pop(0)
+            ee_rpy_pos_action = ee_rpy_pos_traj.pop(0)
+            ee_rpy_vel_action = ee_rpy_vel_traj.pop(0)
             ts = episode_replay.pop(0)
             data_dict['/observations/qpos'].append(ts.observation['qpos'])
             data_dict['/observations/qvel'].append(ts.observation['qvel'])
             if task_name == 'sim_clean':
                 data_dict['/observations/state'].append(ts.observation['env_state'])
-                data_dict['/observations/instructions'].append(ts.observation['language_instruction'])
+            data_dict['/observations/instructions'].append(inst_traj)
             data_dict['/action'].append(action)
+            data_dict['/actions/joint_pos'].append(action)
+            data_dict['/actions/joint_vel'].append(joint_vel_action)
+            data_dict['/actions/ee_pos'].append(ee_pos_action)
+            data_dict['/actions/ee_vel'].append(ee_vel_action)
+            data_dict['/actions/ee_rpy_pos'].append(ee_rpy_pos_action)
+            data_dict['/actions/ee_rpy_vel'].append(ee_rpy_vel_action)
             for cam_name in camera_names:
                 data_dict[f'/observations/images/{cam_name}'].append(ts.observation['images'][cam_name])
 
@@ -195,10 +288,16 @@ def main(args):
             qpos = obs.create_dataset('qpos', (max_timesteps, 14))
             qvel = obs.create_dataset('qvel', (max_timesteps, 14))
             action = root.create_dataset('action', (max_timesteps, 14))
+            actions = root.create_group('actions')
             if task_name == 'sim_clean':
                 state = obs.create_dataset('state', (max_timesteps, 2 * 8))
-                instructions = obs.create_dataset('instructions', (max_timesteps,), dtype=h5py.string_dtype(encoding='utf-8'))
-
+            instructions = obs.create_dataset('instructions', (max_timesteps,), dtype=h5py.string_dtype(encoding='utf-8'))
+            action_joint_pos = actions.create_dataset('joint_pos', (max_timesteps, 14))
+            action_joint_vel = actions.create_dataset('joint_vel', (max_timesteps, 14))
+            action_ee_pos = actions.create_dataset('ee_pos', (max_timesteps, 16))
+            action_ee_vel = actions.create_dataset('ee_vel', (max_timesteps, 16))
+            action_ee_rpy_pos = actions.create_dataset('ee_rpy_pos', (max_timesteps, 14))
+            action_ee_rpy_vel = actions.create_dataset('ee_rpy_vel', (max_timesteps, 14))
             for name, array in data_dict.items():
                 root[name][...] = array
         print(f'Saving: {time.time() - t0:.1f} secs\n')

@@ -308,6 +308,14 @@ class BimanualViperXEETask(base.Task):
         np.copyto(physics.data.mocap_pos[1], np.array([0.31718881, 0.49999888, 0.29525084]))
         np.copyto(physics.data.mocap_quat[1],  [1, 0, 0, 0])
 
+        self.left_prev_mocap_action = np.concatenate([physics.data.mocap_pos[0].copy(), physics.data.mocap_quat[0].copy()])
+        self.left_prev_mocap_pos = physics.data.mocap_pos[0].copy()
+        self.left_prev_mocap_quat = physics.data.mocap_quat[0].copy()
+
+        self.right_prev_mocap_action = np.concatenate([physics.data.mocap_pos[1].copy(), physics.data.mocap_quat[1].copy()])
+        self.right_prev_mocap_pos = physics.data.mocap_pos[1].copy()
+        self.right_prev_mocap_quat = physics.data.mocap_quat[1].copy()
+
         # reset gripper control
         close_gripper_control = np.array([
             PUPPET_GRIPPER_POSITION_CLOSE,
@@ -343,6 +351,37 @@ class BimanualViperXEETask(base.Task):
         right_gripper_qvel = [PUPPET_GRIPPER_VELOCITY_NORMALIZE_FN(right_qvel_raw[6])]
         return np.concatenate([left_arm_qvel, left_gripper_qvel, right_arm_qvel, right_gripper_qvel])
 
+    def get_eepos(self, physics):
+        left_ee_pos_raw = physics.data.mocap_pos[0].copy()
+        left_ee_quat_raw = physics.data.mocap_quat[0].copy()
+
+        right_ee_pos_raw = physics.data.mocap_pos[1].copy()
+        right_ee_quat_raw = physics.data.mocap_quat[1].copy()
+        
+        qpos_raw = physics.data.qpos.copy()
+        left_qpos_raw = qpos_raw[:8]
+        right_qpos_raw = qpos_raw[8:16]
+
+        left_gripper_qpos = [PUPPET_GRIPPER_POSITION_NORMALIZE_FN(left_qpos_raw[6])]
+        right_gripper_qpos = [PUPPET_GRIPPER_POSITION_NORMALIZE_FN(right_qpos_raw[6])]
+        return np.concatenate([left_ee_pos_raw, left_ee_quat_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_quat_raw, right_gripper_qpos])
+        
+    @staticmethod
+    def get_eepos_rpy(physics):
+        left_ee_pos_raw = physics.data.mocap_pos[0].copy()
+        left_ee_quat_raw = physics.data.mocap_quat[0].copy()
+        left_ee_rpy_raw = quat_to_rpy(left_ee_quat_raw[0], left_ee_quat_raw[1], left_ee_quat_raw[2], left_ee_quat_raw[3])
+        right_ee_pos_raw = physics.data.mocap_pos[1].copy()
+        right_ee_quat_raw = physics.data.mocap_quat[1].copy()
+        right_ee_rpy_raw = quat_to_rpy(right_ee_quat_raw[0], right_ee_quat_raw[1], right_ee_quat_raw[2], right_ee_quat_raw[3])
+        
+        qpos_raw = physics.data.qpos.copy()
+        left_qpos_raw = qpos_raw[:8]
+        right_qpos_raw = qpos_raw[8:16]
+        left_gripper_qpos = [PUPPET_GRIPPER_POSITION_NORMALIZE_FN(left_qpos_raw[6])]
+        right_gripper_qpos = [PUPPET_GRIPPER_POSITION_NORMALIZE_FN(right_qpos_raw[6])]
+        return np.concatenate([left_ee_pos_raw, left_ee_rpy_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_rpy_raw, right_gripper_qpos])
+
     @staticmethod
     def get_env_state(physics):
         raise NotImplementedError
@@ -352,6 +391,8 @@ class BimanualViperXEETask(base.Task):
         obs = collections.OrderedDict()
         obs['qpos'] = self.get_qpos(physics)
         obs['qvel'] = self.get_qvel(physics)
+        obs['ee_pos'] = self.get_eepos(physics)
+        obs['ee_rpy_pos'] = self.get_eepos_rpy(physics)
         obs['env_state'] = self.get_env_state(physics)
         obs['images'] = dict()
         obs['images']['top'] = physics.render(height=480, width=640, camera_id='top')

@@ -225,7 +225,7 @@ def main(args):
         ee_vel_traj = ee_vel_traj[1:]
         ee_rpy_pos_traj = ee_rpy_pos_traj[1:-1]
         ee_rpy_vel_traj = ee_rpy_vel_traj[1:]
-        inst_traj[1:-1]
+        # inst_traj[1:-1]
 
         # len(joint_traj) i.e. actions: max_timesteps
         # len(episode_replay) i.e. time steps: max_timesteps + 1
