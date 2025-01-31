@@ -70,7 +70,7 @@ def main(args):
             # if onscreen_render:
             #     plt_img.set_data(ts.observation['images'][render_cam_name])
             #     plt.pause(0.001)
-        plt.close()
+        # plt.close()
 
         episode_return = np.sum([ts.reward for ts in episode[1:]])
         episode_max_reward = np.max([ts.reward for ts in episode[1:]])

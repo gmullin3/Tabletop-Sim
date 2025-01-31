@@ -112,7 +112,7 @@ def main(args):
             right_delta_quat =  (right_prev_back_quat * right_next_quat).elements
             right_delta_rpy = quat_to_rpy(*right_delta_quat)
 
-            delta = np.concatenate([left_ee_vel_traj[i][0:3], delta_rpy, [ee_vel_traj[i][-1]]])
+            delta = np.concatenate([ee_vel_traj[i][0:3], left_delta_rpy, [ee_vel_traj[i][7]],ee_vel_traj[i][8:8+3], right_delta_rpy, [ee_vel_traj[i][-1]]])
             ee_rpy_vel_traj.append(delta)
 
         inst_traj = episode_inst
@@ -170,7 +170,6 @@ def main(args):
         if task_name == 'sim_clean':
             ts = env.reset()
             env.task.init_objects(env.physics, subtask_info)
-
         else:
             BOX_POSE[0] = subtask_info # make sure the sim_env has the same object configurations as ee_sim_env
             ts = env.reset()

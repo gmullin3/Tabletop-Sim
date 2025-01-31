@@ -3,8 +3,8 @@
     <include file="vx300s_dependencies.xml"/>
 
     <equality>
-        <weld body1="mocap_left" body2="vx300s_left/gripper_link" solref="0.01 1" solimp=".25 .25 0.001" />
-        <weld body1="mocap_right" body2="vx300s_right/gripper_link" solref="0.01 1" solimp=".25 .25 0.001" />
+        <weld body1="mocap_left" body2="vx300s_left/gripper_link" solref="0.01 1" solimp="0.97 0.97 0.004" />
+        <weld body1="mocap_right" body2="vx300s_right/gripper_link" solref="0.01 1" solimp="0.97 0.97 0.004" />
     </equality>
 
 

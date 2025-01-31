@@ -51,7 +51,7 @@ class OneArmBasePolicy:
 
         # Inject noise
         if self.inject_noise:
-            scale = 0.01
+            scale = 0.001
             left_xyz = left_xyz + np.random.uniform(-scale, scale, left_xyz.shape)
 
         action_left = np.concatenate([left_xyz, left_quat, [left_gripper]])
@@ -109,7 +109,7 @@ class BasePolicy:
 
         # Inject noise
         if self.inject_noise:
-            scale = 0.01
+            scale = 0.001
             left_xyz = left_xyz + np.random.uniform(-scale, scale, left_xyz.shape)
             right_xyz = right_xyz + np.random.uniform(-scale, scale, right_xyz.shape)
 
@@ -757,6 +757,8 @@ class PickAndTransferPolicy(BasePolicy):
         meet_left_quat = Quaternion(axis=[1.0, 0.0, 0.0], degrees=90)
 
         meet_xyz = np.array([0, 0.5, 0.25])
+        scale = 0.05
+        meet_xyz = meet_xyz + np.random.uniform(-scale, scale, meet_xyz.shape)
 
         self.left_trajectory = [
             {"t": 0, "xyz": init_mocap_pose_left[:3], "quat": init_mocap_pose_left[3:], "gripper": 0}, # sleep
@@ -770,8 +772,8 @@ class PickAndTransferPolicy(BasePolicy):
         self.right_trajectory = [
             {"t": 0, "xyz": init_mocap_pose_right[:3], "quat": init_mocap_pose_right[3:], "gripper": 0}, # sleep
             {"t": 90, "xyz": box_xyz + np.array([0, 0, 0.08]), "quat": gripper_pick_quat.elements, "gripper": 1}, # approach the cube
-            {"t": 130, "xyz": box_xyz + np.array([0, 0, -0.015]), "quat": gripper_pick_quat.elements, "gripper": 1}, # go down
-            {"t": 170, "xyz": box_xyz + np.array([0, 0, -0.015]), "quat": gripper_pick_quat.elements, "gripper": 0}, # close gripper
+            {"t": 130, "xyz": box_xyz + np.array([0, 0, -0.06]), "quat": gripper_pick_quat.elements, "gripper": 1}, # go down
+            {"t": 170, "xyz": box_xyz + np.array([0, 0, -0.06]), "quat": gripper_pick_quat.elements, "gripper": 0}, # close gripper
             {"t": 200, "xyz": meet_xyz + np.array([0.05, 0, 0]), "quat": gripper_pick_quat.elements, "gripper": 0}, # approach meet position
             {"t": 220, "xyz": meet_xyz, "quat": gripper_pick_quat.elements, "gripper": 0}, # move to meet position
             {"t": 310, "xyz": meet_xyz, "quat": gripper_pick_quat.elements, "gripper": 1}, # open gripper
@@ -801,7 +803,9 @@ class InsertionPolicy(BasePolicy):
         gripper_pick_quat_left = gripper_pick_quat_left * Quaternion(axis=[0.0, 1.0, 0.0], degrees=60)
 
         meet_xyz = np.array([0, 0.5, 0.15])
-        lift_right = 0.00715
+        scale = 0.05
+        meet_xyz = meet_xyz + np.random.uniform(-scale, scale, meet_xyz.shape)
+        lift_right = 0.015
 
         self.left_trajectory = [
             {"t": 0, "xyz": init_mocap_pose_left[:3], "quat": init_mocap_pose_left[3:], "gripper": 0}, # sleep
@@ -816,8 +820,8 @@ class InsertionPolicy(BasePolicy):
         self.right_trajectory = [
             {"t": 0, "xyz": init_mocap_pose_right[:3], "quat": init_mocap_pose_right[3:], "gripper": 0}, # sleep
             {"t": 120, "xyz": peg_xyz + np.array([0, 0, 0.08]), "quat": gripper_pick_quat_right.elements, "gripper": 1}, # approach the cube
-            {"t": 170, "xyz": peg_xyz + np.array([0, 0, -0.03]), "quat": gripper_pick_quat_right.elements, "gripper": 1}, # go down
-            {"t": 220, "xyz": peg_xyz + np.array([0, 0, -0.03]), "quat": gripper_pick_quat_right.elements, "gripper": 0}, # close gripper
+            {"t": 170, "xyz": peg_xyz + np.array([0.00, 0, -0.03]), "quat": gripper_pick_quat_right.elements, "gripper": 1}, # go down
+            {"t": 220, "xyz": peg_xyz + np.array([0.00, 0, -0.03]), "quat": gripper_pick_quat_right.elements, "gripper": 0}, # close gripper
             {"t": 285, "xyz": meet_xyz + np.array([0.1, 0, lift_right]), "quat": gripper_pick_quat_right.elements, "gripper": 0}, # approach meet position
             {"t": 340, "xyz": meet_xyz + np.array([0.05, 0, lift_right]), "quat": gripper_pick_quat_right.elements, "gripper": 0},  # insertion
             {"t": 400, "xyz": meet_xyz + np.array([0.05, 0, lift_right]), "quat": gripper_pick_quat_right.elements, "gripper": 0},  # insertion
@@ -828,7 +832,7 @@ class InsertionPolicy(BasePolicy):
 def test_policy(task_name):
     # example rolling out pick_and_transfer policy
     onscreen_render = True
-    inject_noise = False
+    inject_noise = True
 
     # setup the environment
     episode_len = SIM_TASK_CONFIGS[task_name]['episode_len']
@@ -847,7 +851,7 @@ def test_policy(task_name):
             plt_img = ax.imshow(ts.observation['images']['angle'])
             plt.ion()
 
-        policy = PickAndTransferPolicy(inject_noise)
+        policy = InsertionPolicy(inject_noise)
         for step in range(episode_len):
             action = policy(ts)
             ts = env.step(action)
@@ -866,5 +870,6 @@ def test_policy(task_name):
 
 if __name__ == '__main__':
     test_task_name = 'sim_transfer_cube_scripted'
+    test_task_name = 'sim_insertion_scripted'
     test_policy(test_task_name)
 
