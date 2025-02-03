@@ -46,13 +46,13 @@ To visualize the episode after collection, run
 
 Tranfer the red cube from right to left.
 
-https://github.com/user-attachments/assets/81e09238-0f57-4d5e-bc63-4442895a9e0d
+<video src="https://github.com/user-attachments/assets/81e09238-0f57-4d5e-bc63-4442895a9e0d"></video>
 
 **sim_insertion_scripted**
 
 Insert the peg from right to left.
 
-https://github.com/user-attachments/assets/d813cf6b-8bba-4a48-8a8f-0785facd1d00
+<video src="https://github.com/user-attachments/assets/d813cf6b-8bba-4a48-8a8f-0785facd1d00"></video>
 
 **sim_clean**
 
