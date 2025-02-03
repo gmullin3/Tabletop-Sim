@@ -48,22 +48,22 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
                     'action': tfds.features.FeaturesDict({
                         'ee_pos': tfds.features.Tensor(
                             shape=(14,),
-                            dtype=np.float64,
+                            dtype=np.float32,
                             doc='2x robot ee pos',
                         ),
                         'joint_pos': tfds.features.Tensor(
                             shape=(14,),
-                            dtype=np.float64,
+                            dtype=np.float32,
                             doc='2x robot local joint',
                         ),
                         'delta_ee': tfds.features.Tensor(
                             shape=(14,),
-                            dtype=np.float64,
+                            dtype=np.float32,
                             doc='2x robot ee delta',
                         ),
                         'delta_joint': tfds.features.Tensor(
                             shape=(14,),
-                            dtype=np.float64,
+                            dtype=np.float32,
                             doc='2x robot joint delta',
                         ),
                     }),
@@ -87,7 +87,7 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
         """Define data splits."""
         return {
-            'train': self._generate_examples(path='../datasets/*/*.hdf5'),
+            'train': self._generate_examples(path='../../datasets/*/*.hdf5'),
         }
 
     def _generate_examples(self, path) -> Iterator[Tuple[str, Any]]:
@@ -97,26 +97,23 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
             # load raw data --> this should change for your dataset
             root = h5py.File(hdf5_path, 'r')
             length =  root['/actions/ee_pos'].shape[0]
-
-            ## Dataset is generated in 20Hz, I want to make it 5Hz.
-
-            nli = root['/observations/instruction']
-            top_image = root['/observations/images/top']
+            nli = root['/observations/instructions']
+            topview_image = root['/observations/images/top']
             leftview_image = root['/observations/images/left']
             rightview_image = root['/observations/images/right']
 
             joint_pos = root['/actions/joint_pos']
-            ee_pos = root['/actions/ee_pos']
+            ee_pos = root['/actions/ee_rpy_pos']
             delta_joint = root['/actions/joint_vel']
             delta_ee = root['/actions/ee_rpy_vel']
 
             ####### Important ################
             episode = []
-            for i in range(length - shift):
+            for i in range(length):
                 language_embedding = self._embed([nli[i]])[0].numpy()
                 episode.append({
                         'observation': {
-                            'topview_image': image[i],
+                            'topview_image': topview_image[i],
                             'leftview_image': leftview_image[i],
                             'rightview_image': rightview_image[i],
                         },

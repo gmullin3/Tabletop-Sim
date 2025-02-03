@@ -113,7 +113,7 @@ def main(args):
             right_delta_quat =  (right_prev_back_quat * right_next_quat).elements
             right_delta_rpy = quat_to_rpy(*right_delta_quat)
 
-            delta = np.concatenate([ee_vel_traj[i][0:3], left_delta_rpy, [ee_vel_traj[i][7]],ee_vel_traj[i][8:8+3], right_delta_rpy, [ee_vel_traj[i][-1]]])
+            delta = np.concatenate([ee_vel_traj[i][0:3], left_delta_rpy, [ee_vel_traj[i][7]], ee_vel_traj[i][8:8+3], right_delta_rpy, [ee_vel_traj[i][-1]]])
             ee_rpy_vel_traj.append(delta)
 
         inst_traj = episode_inst

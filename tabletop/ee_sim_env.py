@@ -19,58 +19,56 @@ from pyquaternion import Quaternion
 import IPython
 e = IPython.embed
 
-
+def ltor(pos=None, quat=None, euler=None):
+    if pos is not None:
+        pos[:2] = -pos[:-2]
+    if quat is not None:
+        quat[1:3] = -quat[1:3]
+    if euler is not None:
+        euler[:2] = -euler[:2]
+    return pos, quat, euler
+    
 def make_ee_sim_env(task_name, action_type='quat_abs'):
-    """
-    Environment for simulated robot bi-manual manipulation, with end-effector control.
-    Action space:      [left_arm_pose (7),             # position and quaternion for end effector
-                        left_gripper_positions (1),    # normalized gripper position (0: close, 1: open)
-                        right_arm_pose (7),            # position and quaternion for end effector
-                        right_gripper_positions (1),]  # normalized gripper position (0: close, 1: open)
-
-    Observation space: {"qpos": Concat[ left_arm_qpos (6),         # absolute joint position
-                                        left_gripper_position (1),  # normalized gripper position (0: close, 1: open)
-                                        right_arm_qpos (6),         # absolute joint position
-                                        right_gripper_qpos (1)]     # normalized gripper position (0: close, 1: open)
-                        "qvel": Concat[ left_arm_qvel (6),         # absolute joint velocity (rad)
-                                        left_gripper_velocity (1),  # normalized gripper velocity (pos: opening, neg: closing)
-                                        right_arm_qvel (6),         # absolute joint velocity (rad)
-                                        right_gripper_qvel (1)]     # normalized gripper velocity (pos: opening, neg: closing)
-                        "images": {"main": (480x640x3)}        # h, w, c, dtype='uint8'
-    """
+    single_arm = False
+    time_limit = 20
     if 'sim_transfer_cube' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_ee_transfer_cube.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
-        task = TransferCubeEETask(random=False)
-        env = control.Environment(physics, task, time_limit=20, control_timestep=DT,
-                                  n_sub_steps=None, flat_observation=False)
+        task_class = TransferCubeEETask
     elif 'sim_clean' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_ee_clean.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
-        task = CleanEETask(random=False)
-        env = control.Environment(physics, task, time_limit=40, control_timestep=DT,
-                                  n_sub_steps=None, flat_observation=False)
+        task_class = CleanEETask
     elif 'sim_onearm_clean' in task_name:
+        single_arm = True
         xml_path = os.path.join(XML_DIR, f'onearm_viperx_ee_clean.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
-        if action_type == 'rpy_pos':
-            task = get_onearm_ee_rpy_pos_wrapper(OneArmCleanEETask)
-        elif action_type == 'rpy_vel':
-            task = get_onearm_ee_rpy_vel_wrapper(OneArmCleanEETask)
-        elif action_type == 'quat_vel':
-            task = get_onearm_ee_vel_wrapper(OneArmCleanEETask)
-        else:
-            task = OneArmCleanEETask(random=False)
-        env = control.Environment(physics, task, time_limit=20, control_timestep=DT,
-                                  n_sub_steps=None, flat_observation=False)
+        task_class = OneArmCleanEETask
     elif 'sim_insertion' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_ee_insertion.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
-        task = InsertionEETask(random=False)
-        env = control.Environment(physics, task, time_limit=20, control_timestep=DT,
-                                  n_sub_steps=None, flat_observation=False)
+        task_class = InsertionEETask
     else:
         raise NotImplementedError
+    if single_arm:
+        if action_type == 'rpy_pos':
+            task = get_onearm_ee_rpy_pos_wrapper(task_class)
+        elif action_type == 'rpy_vel':
+            task = get_onearm_ee_rpy_vel_wrapper(task_class)
+        elif action_type == 'quat_vel':
+            task = get_onearm_ee_vel_wrapper(task_class)
+        else:
+            task = task_class(random=False)
+    else:
+        if action_type == 'rpy_pos':
+            task = get_ee_rpy_pos_wrapper(task_class)
+        elif action_type == 'rpy_vel':
+            task = get_ee_rpy_vel_wrapper(task_class)
+        elif action_type == 'quat_vel':
+            task = get_ee_vel_wrapper(task_class)
+        else:
+            task = task_class(random=False)
+    env = control.Environment(physics, task, time_limit=time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
     return env
 
 class OneArmViperXEETask(base.Task):
@@ -290,8 +288,9 @@ class BimanualViperXEETask(base.Task):
         np.copyto(physics.data.mocap_pos[0], action_left[:3])
         np.copyto(physics.data.mocap_quat[0], action_left[3:7])
         # right
-        np.copyto(physics.data.mocap_pos[1], action_right[:3])
-        np.copyto(physics.data.mocap_quat[1], action_right[3:7])
+        rpos, rquat, _ = ltor(action_right[:3], action_right[3:7])
+        np.copyto(physics.data.mocap_pos[1], rpos)
+        np.copyto(physics.data.mocap_quat[1], rquat)
 
         # set gripper
         g_left_ctrl = PUPPET_GRIPPER_POSITION_UNNORMALIZE_FN(action_left[7])
@@ -357,6 +356,7 @@ class BimanualViperXEETask(base.Task):
 
         right_ee_pos_raw = physics.data.mocap_pos[1].copy()
         right_ee_quat_raw = physics.data.mocap_quat[1].copy()
+        right_ee_pos_raw, right_ee_quat_raw, _ = ltor(right_ee_pos_raw, right_ee_quat_raw)
         
         qpos_raw = physics.data.qpos.copy()
         left_qpos_raw = qpos_raw[:8]
@@ -373,6 +373,7 @@ class BimanualViperXEETask(base.Task):
         left_ee_rpy_raw = quat_to_rpy(left_ee_quat_raw[0], left_ee_quat_raw[1], left_ee_quat_raw[2], left_ee_quat_raw[3])
         right_ee_pos_raw = physics.data.mocap_pos[1].copy()
         right_ee_quat_raw = physics.data.mocap_quat[1].copy()
+        right_ee_pos_raw, right_ee_quat_raw, _ = ltor(right_ee_pos_raw, right_ee_quat_raw)
         right_ee_rpy_raw = quat_to_rpy(right_ee_quat_raw[0], right_ee_quat_raw[1], right_ee_quat_raw[2], right_ee_quat_raw[3])
         
         qpos_raw = physics.data.qpos.copy()
@@ -528,6 +529,7 @@ class TransferCubeEETask(BimanualViperXEETask):
     def __init__(self, random=None):
         super().__init__(random=random)
         self.max_reward = 4
+        self.instruction = 'transfer the cube'
 
     def initialize_episode(self, physics):
         """Sets the state of the environment at the start of each episode."""
@@ -576,6 +578,7 @@ class InsertionEETask(BimanualViperXEETask):
     def __init__(self, random=None):
         super().__init__(random=random)
         self.max_reward = 4
+        self.instruction = 'insert the peg'
 
     def initialize_episode(self, physics):
         """Sets the state of the environment at the start of each episode."""
