@@ -30,8 +30,8 @@ as specified in the main model. -->
   </default>
 
   <worldbody>
-    <site name="left/actuation_center" pos="0 0 0.25" group="5"/>
-    <site name="right/actuation_center" pos="0 0 0.25" group="5" xyaxes="-1 0 0 0 -1 0"/>
+    <site name="left/actuation_center" pos="0 0 0" group="5"/>
+    <site name="right/actuation_center" pos="0 0 0" group="5" xyaxes="-1 0 0 0 -1 0"/>
   </worldbody>
 
   <actuator>

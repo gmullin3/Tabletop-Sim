@@ -25,6 +25,21 @@ def rpy_to_quat(roll, pitch, yaw):
         return np.array([0.0, 0.0, 0.0, 0.0])
     return np.array(r.as_quat(scalar_first=True))
 
+def mat_to_rpy(mat):
+    return Rotation.from_matrix(mat).as_euler('zyx', degrees=False)
+
+def mat_to_quat(mat):
+    return Rotation.from_matrix(mat).as_quat()
+
+def ltor(pos=None, quat=None, euler=None):
+    if pos is not None:
+        pos[:2] = -pos[:2]
+    if quat is not None:
+        quat[1:3] = -quat[1:3]
+    if euler is not None:
+        euler[:2] = -euler[:2]
+    return pos, quat, euler
+    
 def get_ee_vel_wrapper(target_class):
     class ee_vel_class(target_class):
         def __init__(self, random=False):

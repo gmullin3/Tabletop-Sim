@@ -3,45 +3,26 @@ import pathlib
 ### Task parameters
 DATA_DIR = ''
 SIM_TASK_CONFIGS = {
-    'sim_transfer_cube_scripted':{
-        'dataset_dir': DATA_DIR + '/sim_transfer_cube_scripted',
-        'num_episodes': 100,
+    'transfer_cube':{
         'episode_len': 400,
         'camera_names': ['top', 'left', 'right']
     },
-
-    'sim_transfer_cube_human':{
-        'dataset_dir': DATA_DIR + '/sim_transfer_cube_human',
-        'num_episodes': 50,
-        'episode_len': 400,
-        'camera_names': ['top']
-    },
-
-    'sim_insertion_scripted': {
-        'dataset_dir': DATA_DIR + '/sim_insertion_scripted',
-        'num_episodes': 100,
+    'insertion': {
         'episode_len': 400,
         'camera_names': ['top', 'left', 'right']
     },
-
-    'sim_insertion_human': {
-        'dataset_dir': DATA_DIR + '/sim_insertion_human',
-        'num_episodes': 50,
-        'episode_len': 500,
-        'camera_names': ['top']
-    },
-    'sim_clean': {
-        'dataset_dir': DATA_DIR + '/sim_clean',
-        'num_episodes': 1,
+    'clean': {
         'episode_len': 1200,
         'camera_names': ['angle']
     },
-    'sim_onearm_clean': {
-        'dataset_dir': DATA_DIR + '/sim_onearm_clean',
-        'num_episodes': 1,
+    'onearm_clean': {
         'episode_len': 950,
         'camera_names': ['angle']
     },
+    'aloha': {
+        'episode_len': 1200,
+        'camera_names': ['front', 'back']
+    }
 }
 
 ### Simulation envs fixed constants
@@ -66,11 +47,13 @@ PUPPET_GRIPPER_JOINT_OPEN = 1.4910
 PUPPET_GRIPPER_JOINT_CLOSE = -0.6213
 
 ALOHA_GRIPPER_CLOSE = 0.002
-ALOHA_GRIPPER_OPEN = 0.0037
+ALOHA_GRIPPER_OPEN = 0.037
 
 ############################ Helper functions ############################
 ALOHA_GRIPPER_UNNORMALIZE_FN = lambda x: x * (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE) + ALOHA_GRIPPER_CLOSE
 ALOHA_GRIPPER_NORMALIZE_FN = lambda x: (x - ALOHA_GRIPPER_CLOSE) / (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE)
+ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN = lambda x: x / (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE)
+
 MASTER_GRIPPER_POSITION_NORMALIZE_FN = lambda x: (x - MASTER_GRIPPER_POSITION_CLOSE) / (MASTER_GRIPPER_POSITION_OPEN - MASTER_GRIPPER_POSITION_CLOSE)
 PUPPET_GRIPPER_POSITION_NORMALIZE_FN = lambda x: (x - PUPPET_GRIPPER_POSITION_CLOSE) / (PUPPET_GRIPPER_POSITION_OPEN - PUPPET_GRIPPER_POSITION_CLOSE)
 MASTER_GRIPPER_POSITION_UNNORMALIZE_FN = lambda x: x * (MASTER_GRIPPER_POSITION_OPEN - MASTER_GRIPPER_POSITION_CLOSE) + MASTER_GRIPPER_POSITION_CLOSE

@@ -38,19 +38,19 @@ def make_sim_env(task_name, action_type='abs'):
                                         right_gripper_qvel (1)]     # normalized gripper velocity (pos: opening, neg: closing)
                         "images": {"main": (480x640x3)}        # h, w, c, dtype='uint8'
     """
-    if 'sim_transfer_cube' in task_name:
+    if 'transfer_cube' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_transfer_cube.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
         task = TransferCubeTask(random=False)
         env = control.Environment(physics, task, time_limit=20, control_timestep=DT,
                                   n_sub_steps=None, flat_observation=False)
-    elif 'sim_insertion' in task_name:
+    elif 'insertion' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_insertion.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
         task = InsertionTask(random=False)
         env = control.Environment(physics, task, time_limit=20, control_timestep=DT,
                                   n_sub_steps=None, flat_observation=False)
-    elif 'sim_clean' in task_name:
+    elif 'clean' in task_name:
         xml_path = os.path.join(XML_DIR, f'bimanual_viperx_clean.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
         if action_type == 'vel':
@@ -59,7 +59,7 @@ def make_sim_env(task_name, action_type='abs'):
             task = CleanTask(False)
         env = control.Environment(physics, task, time_limit=40, control_timestep=DT,
                                   n_sub_steps=None, flat_observation=False)
-    elif 'sim_onearm_clean' in task_name:
+    elif 'onearm_clean' in task_name:
         xml_path = os.path.join(XML_DIR, f'onearm_viperx_clean.xml')
         physics = mujoco.Physics.from_xml_path(xml_path)
         if action_type == 'vel':
@@ -68,6 +68,10 @@ def make_sim_env(task_name, action_type='abs'):
             task = OneArmCleanTask(False)
         env = control.Environment(physics, task, time_limit=40, control_timestep=DT,
                                   n_sub_steps=None, flat_observation=False)
+    elif 'aloha' in task_name:
+        xml_path = os.path.join(ALOHA_XML_DIR, f'scene.xml')
+        physics = mujoco.Physics.from_xml_path(xml_path)
+        task_class = AlohaTask
     else:
         raise NotImplementedError
     return env
@@ -522,6 +526,112 @@ class OneArmCleanTask(OneArmViperXTask):
             poses[self.obj_names[self.obj_order[i]]] = np.concatenate([pos, quats])
             # print(self.obj_names[self.obj_order[i]], pos)
         return poses
+
+class AlohaTask(base.Task):
+    def __init__(self, random=None):
+        super().__init__(random=random)
+
+    def before_step(self, action, physics): ## JOINT is the default
+        g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
+        g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+        np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
+
+    def initialize_robots(self, physics):
+        np.copyto(physics.data.qpos, np.array([0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084, 0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084]))
+
+    def initialize_episode(self, physics):
+        self.initialize_robots(physics)
+        super().initialize_episode(physics)
+
+    @staticmethod
+    def get_qpos(physics):
+        qpos_raw = physics.data.qpos.copy()
+        left_qpos_raw = qpos_raw[:8]
+        right_qpos_raw = qpos_raw[8:16]
+        left_arm_qpos = left_qpos_raw[:6]
+        right_arm_qpos = right_qpos_raw[:6]
+        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
+        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
+        return np.concatenate([left_arm_qpos, left_gripper_qpos, right_arm_qpos, right_gripper_qpos])
+
+    @staticmethod
+    def get_qvel(physics):
+        qvel_raw = physics.data.qvel.copy()
+        left_qvel_raw = qvel_raw[:8]
+        right_qvel_raw = qvel_raw[8:16]
+        left_arm_qvel = left_qvel_raw[:6]
+        right_arm_qvel = right_qvel_raw[:6]
+        left_gripper_qvel = [ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN(left_qvel_raw[6])]
+        right_gripper_qvel = [ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN(right_qvel_raw[6])]
+        return np.concatenate([left_arm_qvel, left_gripper_qvel, right_arm_qvel, right_gripper_qvel])
+
+    def get_eepos(self, physics):
+        site_id_left = physics.model.site('left/gripper').id
+        site_id_right = physics.model.site('right/gripper').id
+
+        left_ee_pos_raw = physics.data.site_xpos[site_id_left].copy()
+        right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
+
+        left_ee_mat_raw = physics.data.site_xmat[site_id_left].copy().reshape(3, 3)
+        right_ee_mat_raw = physics.data.site_xmat[site_id_right].copy().reshape(3, 3)
+
+        left_ee_quat_raw = mat_to_quat(left_ee_mat_raw)
+        right_ee_quat_raw = mat_to_quat(right_ee_mat_raw)
+
+        right_ee_pos_raw, right_ee_quat_raw, _ = ltor(right_ee_pos_raw, right_ee_quat_raw)
+
+        qpos_raw = physics.data.qpos.copy()
+        left_qpos_raw = qpos_raw[:8]
+        right_qpos_raw = qpos_raw[8:16]
+        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
+        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
+
+        return np.concatenate([left_ee_pos_raw, left_ee_quat_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_quat_raw, right_gripper_qpos])
+        
+    @staticmethod
+    def get_eepos_rpy(physics):
+        site_id_left = physics.model.site('left/gripper').id
+        site_id_right = physics.model.site('right/gripper').id
+
+        left_ee_pos_raw = physics.data.site_xpos[site_id_left].copy()
+        right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
+
+        left_ee_mat_raw = physics.data.site_xmat[site_id_left].copy().reshape(3, 3)
+        right_ee_mat_raw = physics.data.site_xmat[site_id_right].copy().reshape(3, 3)
+
+        left_ee_rpy_raw = mat_to_rpy(left_ee_mat_raw)
+        right_ee_rpy_raw = mat_to_rpy(right_ee_mat_raw)
+
+        right_ee_pos_raw, _, right_ee_rpy_raw = ltor(right_ee_pos_raw, None, right_ee_rpy_raw)
+        
+        qpos_raw = physics.data.qpos.copy()
+        left_qpos_raw = qpos_raw[:8]
+        right_qpos_raw = qpos_raw[8:16]
+        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
+        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
+        return np.concatenate([left_ee_pos_raw, left_ee_rpy_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_rpy_raw, right_gripper_qpos])
+
+    @staticmethod
+    def get_env_state(physics):
+        return physics.data.qpos.copy()
+
+    def get_observation(self, physics):
+        # note: it is important to do .copy()
+        obs = collections.OrderedDict()
+        obs['qpos'] = self.get_qpos(physics)
+        obs['qvel'] = self.get_qvel(physics)
+        obs['ee_pos'] = self.get_eepos(physics)
+        obs['ee_rpy_pos'] = self.get_eepos_rpy(physics)
+        obs['env_state'] = self.get_env_state(physics)
+        obs['images'] = dict()
+        obs['images']['back'] = physics.render(height=480, width=640, camera_id='teleoperator_pov')
+        obs['images']['front'] = physics.render(height=480, width=640, camera_id='collaborator_pov')
+        obs['images']['wrist_left'] = physics.render(height=480, width=640, camera_id='wrist_cam_left')
+        obs['images']['wrist_right'] = physics.render(height=480, width=640, camera_id='wrist_cam_right')
+        return obs
+
+    def get_reward(self, physics):
+        return 0
 
 
 def get_action(master_bot_left, master_bot_right):

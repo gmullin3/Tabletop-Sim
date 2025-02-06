@@ -5,23 +5,12 @@ import argparse
 import matplotlib.pyplot as plt
 import h5py
 
-from tabletop.constants import PUPPET_GRIPPER_POSITION_NORMALIZE_FN, SIM_TASK_CONFIGS
+from tabletop.constants import *
 from tabletop.ee_sim_env import make_ee_sim_env
 from tabletop.sim_env import make_sim_env, BOX_POSE
 from tabletop.scripted_policy import PickAndTransferPolicy, InsertionPolicy, CleanPolicy
 from tabletop.wrappers import quat_to_rpy, rpy_to_quat
 from pyquaternion import Quaternion
-
-import IPython
-e = IPython.embed
-def ltor(pos=None, quat=None, euler=None):
-    if pos is not None:
-        pos[:2] = -pos[:2]
-    if quat is not None:
-        quat[1:3] = -quat[1:3]
-    if euler is not None:
-        euler[:2] = -euler[:2]
-    return pos, quat, euler
 
 def main(args):
     """
