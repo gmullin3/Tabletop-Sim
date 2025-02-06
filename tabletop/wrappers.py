@@ -54,7 +54,7 @@ def get_ee_rpy_vel_wrapper(target_class):
         def before_step(self, action, physics):
             if self.prev_action is None:
                 self.prev_action = self.get_eepos(physics)
-
+            # print('a', action[7:])
             self.prev_action[:3] += action[:3]
             self.prev_action[7] = action[6]
             self.prev_action[8:11] += action[7:10]
@@ -69,7 +69,7 @@ def get_ee_rpy_vel_wrapper(target_class):
             curr_quat = Quaternion(self.prev_action[11:15])
             next_quat = (curr_quat * delta_quat).elements
             self.prev_action[11:15] = next_quat
-            
+            # print('pa', self.prev_action[8:])
             super().before_step(self.prev_action, physics)
 
         def initialize_robots(self, physics):

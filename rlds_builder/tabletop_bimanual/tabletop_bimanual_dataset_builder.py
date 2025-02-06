@@ -18,7 +18,6 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._embed = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
 
     def _info(self) -> tfds.core.DatasetInfo:
         """Dataset metadata (homepage, citation,...)."""
@@ -70,12 +69,6 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
                     'language_instruction': tfds.features.Text(
                         doc='Language Instruction.'
                     ),
-                    'language_embedding': tfds.features.Tensor(
-                        shape=(512,),
-                        dtype=np.float32,
-                        doc='Kona language embedding. '
-                            'See https://tfhub.dev/google/universal-sentence-encoder-large/5'
-                    ),
                 }),
                 'episode_metadata': tfds.features.FeaturesDict({
                     'file_path': tfds.features.Text(
@@ -110,7 +103,6 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
             ####### Important ################
             episode = []
             for i in range(length):
-                language_embedding = self._embed([nli[i]])[0].numpy()
                 episode.append({
                         'observation': {
                             'topview_image': topview_image[i],
@@ -124,7 +116,6 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
                             'delta_joint': delta_joint[i]
                         },
                         'language_instruction': nli[i],
-                        'language_embedding': language_embedding,
                     })
 
             # create output data sample

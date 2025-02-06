@@ -14,7 +14,14 @@ from pyquaternion import Quaternion
 
 import IPython
 e = IPython.embed
-
+def ltor(pos=None, quat=None, euler=None):
+    if pos is not None:
+        pos[:2] = -pos[:2]
+    if quat is not None:
+        quat[1:3] = -quat[1:3]
+    if euler is not None:
+        euler[:2] = -euler[:2]
+    return pos, quat, euler
 
 def main(args):
     """
@@ -68,8 +75,10 @@ def main(args):
             plt.ion()
         for step in range(episode_len):
             action = policy(ts)
+            rpos, rquat, _ = ltor(action[8:8+3], action[11:11+4])
+            action[8:8+3] = rpos
+            action[11:11+4] = rquat
             ts = env.step(action)
-            # print(step, ts.reward)
             episode.append(ts)
             if onscreen_render:
                 plt_img.set_data(ts.observation['images'][render_cam_name])
