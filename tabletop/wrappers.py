@@ -237,20 +237,27 @@ class GSOWrapper:
         ET.SubElement(body, "inertial", pos="0 0 0", mass=str(self.mass), diaginertia="0.002 0.002 0.002")
         ET.SubElement(body, "geom", material=f"{self.name}_material_0_{self.id}", mesh=f"{self.name}_model_{self.id}", type="mesh", contype="0", conaffinity="0", group="2")
         for i in range(32):
-            ET.SubElement(body, "geom", mesh=f"{self.name}_collision_{i}_{self.id}", type="mesh", group="3")
+            ET.SubElement(body, "geom", name=f"{self.name}_collision_{i}_{self.id}", mesh=f"{self.name}_collision_{i}_{self.id}", type="mesh", group="3")
         return asset, body
 
     def get_joint_name(self):
         return f'{self.name}_joint_{self.id}'
 
+    def get_geoms(self):
+        geoms = []
+        for i in range(32):
+            geoms.append(f'{self.name}_collision_{i}_{self.id}')
+        return geoms
+
 class RewardFunction:
     def __init__(self, max_reward=4):
         self.max_reward = 4
         self.reward = 0
-
-    def up_reward(self):
-        if not self.reward == self.max_reward:
+    
+    def check_reward(self, physics, reward_condition_list):
+        if reward_condition_list[self.reward]:
             self.reward += 1
+        return self.reward
     
 
 

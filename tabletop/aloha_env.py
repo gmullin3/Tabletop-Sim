@@ -152,17 +152,50 @@ class AlohaTask(base.Task):
         obs['images']['wrist_right'] = physics.render(height=480, width=640, camera_id='wrist_cam_right')
         return obs
 
-    def get_reward(self, physics):
-        return 0
+    def get_reward(self, physics, reward_condition_list = []):
+        self.all_contact_pairs = []
+        for i_contact in range(physics.data.ncon):
+            id_geom_1 = physics.data.contact[i_contact].geom1
+            id_geom_2 = physics.data.contact[i_contact].geom2
+            name_geom_1 = physics.model.id2name(id_geom_1, 'geom')
+            name_geom_2 = physics.model.id2name(id_geom_2, 'geom')
+            contact_pair = (name_geom_1, name_geom_2)
+            self.all_contact_pairs.append(contact_pair)
+        if self.reward < len(reward_condition_list) and reward_condition_list[self.reward]:
+            self.reward += 1
+        return self.reward
+
+    def get_touch(self, physics, name1, name2):
+        name1 = self.get_geoms(physics, name1)
+        name2 = self.get_geoms(physics, name2)
+        for contact_pair in self.all_contact_pairs:
+            if (contact_pair[0] in name1 and contact_pair[1] in name2) or \
+            (contact_pair[0] in name2 and contact_pair[1] in name1):
+                return True  # Contact detected
+        return False  # No contact
+
+    def get_geoms(self, physics, name):
+        if name == 'right_arm':
+            geoms = ['right/right_g0', 'right/right_g1', 'right/right_g2', 'right/left_g0', 'right/left_g1', 'right/left_g2']
+        elif name == 'left_arm':
+            geoms = ['left/right_g0', 'left/right_g1', 'left/right_g2', 'left/left_g0', 'left/left_g1', 'left/left_g2']
+        elif name == 'table':
+            geoms = ['table']
+        elif name in self.obj_dict.keys():
+            geoms = self.obj_dict[name].get_geoms()
+        else:
+            geoms = []
+        return geoms
+
+
 
 
 class DishDrainer(AlohaTask):
     def __init__(self, random=None):
-        super().__init__(random=random)
-        ## OBJ INIT
+        super().__init__(random=random) ## always first
         self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.6, 0.6, 0.6])
         self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
-        self.RF = RewardFunction(1)
+        self.reward = 0
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
@@ -170,10 +203,13 @@ class DishDrainer(AlohaTask):
         plate_pos[:2] += random_vector*0.01
         plate_rpy = np.array([0, 0, 0],)
         self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)
-        super().initialize_episode(physics)
+        super().initialize_episode(physics) ## always last
 
     def get_reward(self, physics):
-        return 0
+        reward_condition_list = [
+            self.get_touch(physics, 'right_arm', 'plate')
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
 
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {

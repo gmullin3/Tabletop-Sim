@@ -114,30 +114,6 @@ class SimulationUI(QWidget):
         self.image_label = QLabel(self)
         self.image_label.setAlignment(Qt.AlignCenter)  # Center align the image
         self.layout.addWidget(self.image_label, stretch=3)  # Give it more space
-
-        # # Right Side - Controls (Label + Buttons)
-        # self.right_layout = QVBoxLayout()
-        # # File name label (above buttons)
-        # self.file_label = QLabel("Current File: None")
-        # self.file_label.setAlignment(Qt.AlignCenter)
-        # self.right_layout.addWidget(self.file_label)
-        # # Success & Fail buttons
-        # self.success_button = QPushButton("Success")
-        # self.fail_button = QPushButton("Fail")
-        # # Set button size to be larger
-        # self.success_button.setFixedSize(200, 80)
-        # self.fail_button.setFixedSize(200, 80)
-        # # Add buttons to right layout
-        # self.right_layout.addWidget(self.success_button)
-        # self.right_layout.addWidget(self.fail_button)
-
-        # self.success_button.clicked.connect(self.on_success)
-        # self.fail_button.clicked.connect(self.on_fail)
-
-        # # Push everything to the top of the right layout
-        # self.right_layout.addStretch()
-        # # Add right layout to main layout
-        # self.layout.addLayout(self.right_layout, stretch=1)
         self.setLayout(self.layout)
 
     def display_image(self, img):
@@ -146,7 +122,7 @@ class SimulationUI(QWidget):
         q_img = QImage(img.data, w, h, bytes_per_line, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(q_img)
         self.image_label.setPixmap(pixmap)
-        self.image_label.repaint()            
+        self.image_label.repaint()
 
     def closeEvent(self, event):
         self.render_thread.stop()
@@ -156,24 +132,6 @@ class SimulationUI(QWidget):
         """ Updates the file name label. """
         self.current_file = filename
         self.file_label.setText(f"Current File: {filename}")
-
-    def on_success(self):
-        """ Callback for the 'Success' button. Logs and saves the result. """
-        if self.current_file:
-            print(f"Success: {self.current_file}")
-            with open("results.log", "a") as f:
-                f.write(f"{self.current_file}, SUCCESS\n")
-        else:
-            print("No file recorded yet.")
-
-    def on_fail(self):
-        """ Callback for the 'Fail' button. Logs and saves the result. """
-        if self.current_file:
-            print(f"Fail: {self.current_file}")
-            with open("results.log", "a") as f:
-                f.write(f"{self.current_file}, FAIL\n")
-        else:
-            print("No file recorded yet.")
     
 
 if __name__ == '__main__':
