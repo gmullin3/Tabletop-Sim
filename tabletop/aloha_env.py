@@ -209,6 +209,7 @@ class DishDrainer(AlohaTask):
         reward_condition_list = [
             self.get_touch(physics, 'right_arm', 'plate')
         ]
+        
         return super().get_reward(physics, reward_condition_list) ### always first
 
 ALOHA_TASK_CONFIGS = {
