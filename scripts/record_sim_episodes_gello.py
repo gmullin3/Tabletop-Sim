@@ -1,83 +1,189 @@
-# from gello_ros import GelloEnv
-
-import time
+import sys
 import os
 import numpy as np
 import argparse
-import matplotlib.pyplot as plt
 import h5py
-
+from gello_ros import GelloEnv
 from tabletop.constants import *
-from tabletop import make_ee_sim_env, make_sim_env
-from tabletop.sim_env import make_sim_env, BOX_POSE
+import tabletop
 from tabletop.wrappers import quat_to_rpy, rpy_to_quat
 from pyquaternion import Quaternion
+import dm_env
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+import time
+import rclpy
 
-from mujoco.glfw import glfw
-import mujoco as mj
+class RenderThread(QThread):
+    image_signal = pyqtSignal(np.ndarray)
 
-def main(args):
-    task_name = args['task_name']
-    dataset_dir = args['dataset_dir']
-    num_episodes = args['num_episodes']
-    render_cam_name = 'angle'
-    real_idx = 0
+    def __init__(self, env, physics, height, width, gello):
+        super().__init__()
+        self.env = env
+        self.physics = physics
+        self.height = height
+        self.width = width
+        self.gello = gello
+        self.running = True
+        self.reset_flag = True
 
-    if not os.path.isdir(dataset_dir):
-        os.makedirs(dataset_dir, exist_ok=True)
+    def run(self):
+        while self.running:
+            reset_flag = False
+            while self.gello.start and self.running:
+                start_time = time.time()
+                # left_pos = self.gello.action['left_pose']
+                # right_pos = self.gello.action['right_pose']
+                left_grp = self.gello.action['left_gripper_command']
+                right_grp = self.gello.action['right_gripper_command']
+                left_joint = self.gello.action['left_qpos']
+                right_joint = self.gello.action['right_qpos']
 
-    episode_len = SIM_TASK_CONFIGS[task_name]['episode_len']
-    camera_names = SIM_TASK_CONFIGS[task_name]['camera_names']
+                ## Joint Remapping (haha)
+                remap_idx = [0, 1, 2, 4, 3, 5]
+                left_joint = left_joint[remap_idx]
+                right_joint = right_joint[remap_idx]
+                left_joint[0] = left_joint[0] - np.pi / 2
+                right_joint[0] = right_joint[0] - np.pi / 2
+                left_joint[1] = left_joint[1] - np.pi / 2
+                right_joint[1] = right_joint[1] - np.pi / 2
+                left_joint[2] = left_joint[2] + np.pi / 2
+                right_joint[2] = right_joint[2] + np.pi / 2
+                ##
+                left_joint = [0] * 6
+                ##
 
-    # gello = GelloEnv()
+                action = np.concatenate([left_joint, 1 - left_grp, right_joint, 1 - right_grp])
+                ts = self.env.step(action)
 
-    ## ENV INIT
-    env = make_ee_sim_env(task_name)
-    ts = env.reset()
-    model = env.physics.model
-    data = env.physics.data
-    cam = mj.MjvCamera()
-    opt = mj.MjvOption()
+                # RENDER
+                img = self.physics.render(self.height, self.width, camera_id=0)
+                img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
+                self.image_signal.emit(img)
+                ##
 
-    ### GLFW SETUP ######################
-    glfw.init()
-    window = glfw.create_window(1200, 900, "Tabletop Simulation", None, None)
-    glfw.make_context_current(window)
-    glfw.swap_interval(1)
-
-    mj.mjv_defaultCamera(cam)
-    mj.mjv_defaultOption(opt)
-    scene = mj.MjvScene(model, maxgeom=10000)
-    context = mj.MjrContext(model, mj.mjtFontScale.mjFONTSCALE_150.value)
-    viewport_width, viewport_height = glfw.get_framebuffer_size(window)
-    viewport = mj.MjrRect(0, 0, viewport_width, viewport_height)
-    #####################################
-
-    success = []
-    episode_idx = 0
-
-    while not glfw.window_should_close(window):
-        while episode_idx < num_episodes:
-            env = make_ee_sim_env(task_name)
-            ts = env.reset()
-            episode = [ts]
-
-            # Waiting for start
-            while not False:
-                mj.mjv_updateScene(model, data, opt, None, cam, mj.mjtCatBit.mjCAT_ALL.value, self.scene)
-                mj.mjr_render(viewport, self.scene, self.context)
-                glfw.swap_buffers(self.window)
-                glfw.poll_events()
-
-    glfw.terminate()
+                ## TERMINATE
+                if ts.step_type == dm_env.StepType.LAST:
+                    self.gello.start = False
+                ##
+                delta_time=  time.time() - start_time
+                time.sleep(DT - delta_time if DT - delta_time > 0 else 0)
+            while not self.gello.start and self.running:
+                if reset_flag == False:
+                    ts = self.env.reset()
+                    reset_flag = True
+                img = self.physics.render(self.height, self.width, camera_id=0)
+                img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
+                self.image_signal.emit(img)
+                time.sleep(DT)
 
 
+    def stop(self):
+        self.running = False
+        self.quit()
+        self.wait()
+
+
+class SimulationUI(QWidget):
+    def __init__(self, task_name, num_episodes, width=1600, height=900):
+        super().__init__()
+        self.task_name = task_name
+        self.num_episodes = num_episodes
+        self.width = width
+        self.height = height
+
+        self.gello = GelloEnv()
+        self.env = tabletop.env(task_name, 'joint_pos')
+        self.physics = self.env.physics
+        self.physics.model.vis.global_.offwidth = self.width
+        self.physics.model.vis.global_.offheight = self.height
+        self.initUI()
+
+        self.render_thread = RenderThread(self.env, self.physics, self.height, self.width, self.gello)
+        self.render_thread.image_signal.connect(self.display_image)
+        self.render_thread.start()
+
+    def initUI(self):
+        self.setWindowTitle("Tabletop Simulation")
+        self.showMaximized()
+        # Main layout
+        self.layout = QHBoxLayout()  # Horizontal layout to split image & buttons
+        # Left Side - Image
+        self.image_label = QLabel(self)
+        self.image_label.setAlignment(Qt.AlignCenter)  # Center align the image
+        self.layout.addWidget(self.image_label, stretch=3)  # Give it more space
+
+        # # Right Side - Controls (Label + Buttons)
+        # self.right_layout = QVBoxLayout()
+        # # File name label (above buttons)
+        # self.file_label = QLabel("Current File: None")
+        # self.file_label.setAlignment(Qt.AlignCenter)
+        # self.right_layout.addWidget(self.file_label)
+        # # Success & Fail buttons
+        # self.success_button = QPushButton("Success")
+        # self.fail_button = QPushButton("Fail")
+        # # Set button size to be larger
+        # self.success_button.setFixedSize(200, 80)
+        # self.fail_button.setFixedSize(200, 80)
+        # # Add buttons to right layout
+        # self.right_layout.addWidget(self.success_button)
+        # self.right_layout.addWidget(self.fail_button)
+
+        # self.success_button.clicked.connect(self.on_success)
+        # self.fail_button.clicked.connect(self.on_fail)
+
+        # # Push everything to the top of the right layout
+        # self.right_layout.addStretch()
+        # # Add right layout to main layout
+        # self.layout.addLayout(self.right_layout, stretch=1)
+        self.setLayout(self.layout)
+
+    def display_image(self, img):
+        h, w, ch = img.shape
+        bytes_per_line = ch * w
+        q_img = QImage(img.data, w, h, bytes_per_line, QImage.Format_RGB888)
+        pixmap = QPixmap.fromImage(q_img)
+        self.image_label.setPixmap(pixmap)
+        self.image_label.repaint()            
+
+    def closeEvent(self, event):
+        self.render_thread.stop()
+        event.accept()
+
+    def set_current_file(self, filename):
+        """ Updates the file name label. """
+        self.current_file = filename
+        self.file_label.setText(f"Current File: {filename}")
+
+    def on_success(self):
+        """ Callback for the 'Success' button. Logs and saves the result. """
+        if self.current_file:
+            print(f"Success: {self.current_file}")
+            with open("results.log", "a") as f:
+                f.write(f"{self.current_file}, SUCCESS\n")
+        else:
+            print("No file recorded yet.")
+
+    def on_fail(self):
+        """ Callback for the 'Fail' button. Logs and saves the result. """
+        if self.current_file:
+            print(f"Fail: {self.current_file}")
+            with open("results.log", "a") as f:
+                f.write(f"{self.current_file}, FAIL\n")
+        else:
+            print("No file recorded yet.")
+    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task_name', action='store', type=str, help='task_name', required=True)
-    parser.add_argument('--dataset_dir', action='store', type=str, help='dataset saving dir', required=True)
-    parser.add_argument('--num_episodes', action='store', type=int, help='num_episodes', required=False)
-    parser.add_argument('--onscreen_render', action='store_true')
+    parser.add_argument('--task_name', action='store', type=str, default='aloha_dish_drainer', required=False)
+    parser.add_argument('--num_episodes', action='store', type=int, default=1)
     
-    main(vars(parser.parse_args()))
+    args = parser.parse_args()
+    
+    app = QApplication(sys.argv)
+    ui = SimulationUI(args.task_name, args.num_episodes)
+    ui.show()
+    sys.exit(app.exec_())

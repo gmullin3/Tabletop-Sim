@@ -19,14 +19,11 @@ SIM_TASK_CONFIGS = {
         'episode_len': 950,
         'camera_names': ['angle']
     },
-    'aloha': {
-        'episode_len': 1200,
-        'camera_names': ['front', 'back']
-    }
+    
 }
 
 ### Simulation envs fixed constants
-DT = 0.02
+DT = 0.04
 JOINT_NAMES = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wrist_rotate"]
 START_ARM_POSE = [0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239,  0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239]
 ONEARM_START_ARM_POSE = [0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239]

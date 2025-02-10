@@ -1,3 +1,3 @@
-[submodule "tabletop/assets/aloha/mujoco_scanned_objects"]
-	path = tabletop/assets/aloha/mujoco_scanned_objects
+[submodule "tabletop/assets/aloha/assets/mujoco_scanned_objects"]
+	path = tabletop/assets/aloha/assets/mujoco_scanned_objects
 	url = https://github.com/kevinzakka/mujoco_scanned_objects.git

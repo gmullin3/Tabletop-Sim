@@ -10,6 +10,8 @@ import random
 from pyquaternion import Quaternion
 import math
 from scipy.spatial.transform import Rotation
+import xml.etree.ElementTree as ET
+import numpy as np
 
 def quat_to_rpy(w, x, y, z, mode='abs'):
     try:
@@ -23,7 +25,7 @@ def rpy_to_quat(roll, pitch, yaw):
         r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=False)
     except:
         return np.array([0.0, 0.0, 0.0, 0.0])
-    return np.array(r.as_quat(scalar_first=True))
+    return np.array(r.as_quat())
 
 def mat_to_rpy(mat):
     return Rotation.from_matrix(mat).as_euler('zyx', degrees=False)
@@ -209,6 +211,50 @@ def get_onearm_joint_vel_wrapper(target_class):
             super().initialize_robots(physics)
 
     return joint_vel_class(False)
-            
-            
+
+class GSOWrapper:
+    def __init__(self, name, pos, quat=[1, 0, 0, 0], scale=[1, 1, 1], mass=1.0, id=0):
+        self.name = name
+        self.pos = pos
+        self.quat = quat
+        self.scale = scale
+        self.mass = mass
+        self.gso_dir = f'mujoco_scanned_objects/models/{name}/'
+        self.id = id
+        
+    def generate_xml(self):
+        ## ASSET
+        asset = ET.Element("asset")
+        ET.SubElement(asset, "texture", type="2d", name=f"{self.name}_texture_{self.id}", file=f"{self.gso_dir}texture.png")
+        ET.SubElement(asset, "material", name=f"{self.name}_material_0_{self.id}", texture=f"{self.name}_texture_{self.id}")
+        ET.SubElement(asset, "mesh", name=f"{self.name}_model_{self.id}", file=f"{self.gso_dir}model.obj", scale="{} {} {}".format(*self.scale))
+        for i in range(32):
+            ET.SubElement(asset, "mesh", name=f"{self.name}_collision_{i}_{self.id}", file=f"{self.gso_dir}model_collision_{i}.obj", scale="{} {} {}".format(*self.scale))
+
+        ## OBJECT
+        body = ET.Element("body", name=f"{self.name}_object_{self.id}", pos="{} {} {}".format(*self.pos), quat="{} {} {} {}".format(*self.quat))
+        ET.SubElement(body, "joint", name=f"{self.name}_joint_{self.id}", type="free", frictionloss="0.01")
+        ET.SubElement(body, "inertial", pos="0 0 0", mass=str(self.mass), diaginertia="0.002 0.002 0.002")
+        ET.SubElement(body, "geom", material=f"{self.name}_material_0_{self.id}", mesh=f"{self.name}_model_{self.id}", type="mesh", contype="0", conaffinity="0", group="2")
+        for i in range(32):
+            ET.SubElement(body, "geom", mesh=f"{self.name}_collision_{i}_{self.id}", type="mesh", group="3")
+        return asset, body
+
+    def get_joint_name(self):
+        return f'{self.name}_joint_{self.id}'
+
+class RewardFunction:
+    def __init__(self, max_reward=4):
+        self.max_reward = 4
+        self.reward = 0
+
+    def up_reward(self):
+        if not self.reward == self.max_reward:
+            self.reward += 1
+    
+
+
+        
+
+
             

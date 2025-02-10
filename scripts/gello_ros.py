@@ -4,6 +4,7 @@ from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import Float64MultiArray, Bool
 import numpy as np
 import threading
+from scipy.spatial.transform import Rotation
 
 class GelloEnv:
     def __init__(self):
