@@ -9,7 +9,7 @@ from tabletop.constants import *
 from tabletop.ee_sim_env import make_ee_sim_env
 from tabletop.sim_env import make_sim_env, BOX_POSE
 from tabletop.scripted_policy import PickAndTransferPolicy, InsertionPolicy, CleanPolicy
-from tabletop.wrappers import quat_to_rpy, rpy_to_quat
+from tabletop.wrappers import quat_to_rpy, rpy_to_quat, ltor
 from pyquaternion import Quaternion
 
 def main(args):
@@ -35,13 +35,13 @@ def main(args):
 
     episode_len = SIM_TASK_CONFIGS[task_name]['episode_len']
     camera_names = SIM_TASK_CONFIGS[task_name]['camera_names']
-    if task_name == 'sim_transfer_cube_scripted':
+    if task_name == 'transfer_cube':
         policy_cls = PickAndTransferPolicy
         episode_inst = 'transfer the cube'
-    elif task_name == 'sim_insertion_scripted':
+    elif task_name == 'insertion':
         policy_cls = InsertionPolicy
         episode_inst = 'insert the peg'
-    elif task_name == 'sim_clean':
+    elif task_name == 'clean':
         policy_cls = CleanPolicy
         episode_inst = 'clean the table'
     else:
@@ -67,7 +67,9 @@ def main(args):
             rpos, rquat, _ = ltor(action[8:8+3], action[11:11+4])
             action[8:8+3] = rpos
             action[11:11+4] = rquat
+            s = time.time()
             ts = env.step(action)
+            print(time.time() - s)
             episode.append(ts)
             if onscreen_render:
                 plt_img.set_data(ts.observation['images'][render_cam_name])
