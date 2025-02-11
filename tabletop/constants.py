@@ -28,7 +28,7 @@ JOINT_NAMES = ["waist", "shoulder", "elbow", "forearm_roll", "wrist_angle", "wri
 START_ARM_POSE = [0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239,  0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239]
 ONEARM_START_ARM_POSE = [0, -0.96, 1.16, 0, -0.3, 0, 0.02239, -0.02239]
 
-XML_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/assets/' # note: absolute path
+XML_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/assets/viperx' # note: absolute path
 ALOHA_XML_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/assets/aloha' # note: absolute path
 
 # Left finger position limits (qpos[7]), right_finger = -1 * left_finger
