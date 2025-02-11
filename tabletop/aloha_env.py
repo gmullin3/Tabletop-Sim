@@ -16,6 +16,9 @@ class AlohaTask(base.Task):
         self.obj_dict = {}
         self.obj_id_counter = 0
         self.time_limit = 20
+        self.reward = 0
+        self.reward_counter = 0
+        self.max_reward = 1
         super().__init__(random=random)
 
     def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0):
@@ -30,11 +33,16 @@ class AlohaTask(base.Task):
         g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
         np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
 
+    def after_step(self, physics):
+        self.update_contact(physics)
+
     def initialize_robots(self, physics):
         np.copyto(physics.data.qpos[:16], np.array([0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084, 0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084]))
 
     def initialize_episode(self, physics):
         self.initialize_robots(physics)
+        self.reward = 0
+        self.reward_counter = 0
         super().initialize_episode(physics)
 
     def set_object_pose(self, physics, nick, pos=None, rpy=None):
@@ -152,7 +160,7 @@ class AlohaTask(base.Task):
         obs['images']['wrist_right'] = physics.render(height=480, width=640, camera_id='wrist_cam_right')
         return obs
 
-    def get_reward(self, physics, reward_condition_list = []):
+    def update_contact(self, physics):
         self.all_contact_pairs = []
         for i_contact in range(physics.data.ncon):
             id_geom_1 = physics.data.contact[i_contact].geom1
@@ -161,11 +169,21 @@ class AlohaTask(base.Task):
             name_geom_2 = physics.model.id2name(id_geom_2, 'geom')
             contact_pair = (name_geom_1, name_geom_2)
             self.all_contact_pairs.append(contact_pair)
-        if self.reward < len(reward_condition_list) and reward_condition_list[self.reward]:
-            self.reward += 1
+
+    def get_reward(self, physics, reward_condition_list=[[False, 0]]):
+        self.max_reward = len(reward_condition_list)
+        if not self.reward == self.max_reward:
+            if reward_condition_list[self.reward][0]:
+                if self.reward_counter == reward_condition_list[self.reward][1]:
+                    self.reward += 1
+                    self.reward_counter = 0
+                else:
+                    self.reward_counter += 1
+            else:
+                self.reward_counter = 0
         return self.reward
 
-    def get_touch(self, physics, name1, name2):
+    def get_touch_condition(self, physics, name1, name2): ## Call after update_contact
         name1 = self.get_geoms(physics, name1)
         name2 = self.get_geoms(physics, name2)
         for contact_pair in self.all_contact_pairs:
@@ -187,29 +205,33 @@ class AlohaTask(base.Task):
             geoms = []
         return geoms
 
+    def get_pos_condition(self, physics, pos1, pos2, delta=0.1):
+        return False
 
-
+    def get_quat_condtion(self, physics, quat1, quat2, delta=0.1):
+        return False
 
 class DishDrainer(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random) ## always first
         self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.6, 0.6, 0.6])
         self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
-        self.reward = 0
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
-        plate_pos = np.array([0.1, 0.0, 0.01])
+        plate_pos = np.array([0.13, 0.0, 0.01])
         plate_pos[:2] += random_vector*0.01
         plate_rpy = np.array([0, 0, 0],)
         self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)
         super().initialize_episode(physics) ## always last
 
     def get_reward(self, physics):
+        ## [condition, counter]
         reward_condition_list = [
-            self.get_touch(physics, 'right_arm', 'plate')
+            [self.get_touch_condition(physics, 'right_arm', 'plate'), 10],
+            [not self.get_touch_condition(physics, 'table', 'plate'), 50],
+            [self.get_touch_condition(physics, 'drainer', 'plate'), 100],
         ]
-        
         return super().get_reward(physics, reward_condition_list) ### always first
 
 ALOHA_TASK_CONFIGS = {

@@ -11,13 +11,14 @@ from pyquaternion import Quaternion
 import dm_env
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QPixmap, QImage, QFont
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 import time
 import rclpy
 
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
+    reward_signal = pyqtSignal(np.ndarray)  # Signal to send reward values
 
     def __init__(self, env, physics, height, width, gello):
         super().__init__()
@@ -57,6 +58,7 @@ class RenderThread(QThread):
 
                 action = np.concatenate([left_joint, 1 - left_grp, right_joint, 1 - right_grp])
                 ts = self.env.step(action)
+                self.reward_signal.emit(np.array([ts.reward, self.env.task.max_reward]))  # Send reward to UI
 
                 # RENDER
                 img = self.physics.render(self.height, self.width, camera_id=0)
@@ -103,16 +105,26 @@ class SimulationUI(QWidget):
 
         self.render_thread = RenderThread(self.env, self.physics, self.height, self.width, self.gello)
         self.render_thread.image_signal.connect(self.display_image)
+        self.render_thread.reward_signal.connect(self.set_current_reward)
         self.render_thread.start()
 
     def initUI(self):
         self.setWindowTitle("Tabletop Simulation")
         self.showMaximized()
         # Main layout
-        self.layout = QHBoxLayout()  # Horizontal layout to split image & buttons
+        self.layout = QVBoxLayout()  # layout to split image & buttons
         # Left Side - Image
         self.image_label = QLabel(self)
         self.image_label.setAlignment(Qt.AlignCenter)  # Center align the image
+
+        # Overlay Text Label (Big Text)
+        self.text_label = QLabel("Reward", self)
+        self.text_label.setAlignment(Qt.AlignCenter)
+        self.text_label.setFont(QFont("Arial", 40, QFont.Bold))
+        self.text_label.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 150);")  # Semi-transparent background
+        self.text_label.setGeometry(0, 0, self.width, 80)  # Position at the top
+
+        self.layout.addWidget(self.text_label)
         self.layout.addWidget(self.image_label, stretch=3)  # Give it more space
         self.setLayout(self.layout)
 
@@ -128,10 +140,9 @@ class SimulationUI(QWidget):
         self.render_thread.stop()
         event.accept()
 
-    def set_current_file(self, filename):
+    def set_current_reward(self, rewards):
         """ Updates the file name label. """
-        self.current_file = filename
-        self.file_label.setText(f"Current File: {filename}")
+        self.text_label.setText(f"Reward : {rewards[0]} / {rewards[1]}")
     
 
 if __name__ == '__main__':
