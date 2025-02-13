@@ -25,7 +25,7 @@ def rpy_to_quat(roll, pitch, yaw):
         r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=False)
     except:
         return np.array([0.0, 0.0, 0.0, 0.0])
-    return np.array(r.as_quat())
+    return np.array(r.as_quat(scalar_first=True))
 
 def mat_to_rpy(mat):
     return Rotation.from_matrix(mat).as_euler('zyx', degrees=False)
@@ -80,6 +80,7 @@ def get_ee_rpy_vel_wrapper(target_class):
             delta_quat = Quaternion(rpy_to_quat(*action[3:6]))
             curr_quat = Quaternion(self.prev_action[3:7])
             next_quat = (curr_quat * delta_quat).elements
+            # print(action[3:6], curr_quat, delta_quat, next_quat)
             self.prev_action[3:7] = next_quat
 
             delta_quat = Quaternion(rpy_to_quat(*action[10:13]))
@@ -87,6 +88,7 @@ def get_ee_rpy_vel_wrapper(target_class):
             next_quat = (curr_quat * delta_quat).elements
             self.prev_action[11:15] = next_quat
             # print('pa', self.prev_action[8:])
+            # print(self.prev_action)
             super().before_step(self.prev_action, physics)
 
         def initialize_robots(self, physics):

@@ -215,7 +215,7 @@ class DishDrainer(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random) ## always first
         self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.6, 0.6, 0.6])
-        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
+        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], scale=[0.6, 0.6, 0.6], mass=0.2)
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
