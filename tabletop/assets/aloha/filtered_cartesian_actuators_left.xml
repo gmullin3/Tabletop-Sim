@@ -31,7 +31,7 @@ as specified in the main model. -->
 
   <worldbody>
     <site name="left/actuation_center" pos="-0.469 -0.019 0.02" group="5"/>
-    <site name="right/actuation_center" pos="0.469 -0.019 0.02" group="5" xyaxes="-1 0 0 0 -1 0"/>
+    <!-- <site name="right/actuation_center" pos="0.469 -0.019 0.02" group="5" xyaxes="-1 0 0 0 -1 0"/> -->
   </worldbody>
 
   <actuator>
@@ -42,13 +42,13 @@ as specified in the main model. -->
     <general name="left/RY" class="act_rotation" site="left/gripper" refsite="left/actuation_center" gear="0 0 0 0 1 0"/>
     <general name="left/RZ" class="act_rotation" site="left/gripper" refsite="left/actuation_center" gear="0 0 0 0 0 1"/>
     <general class="act_gripper" name="left/finger" joint="left/left_finger"/>
-
+<!-- 
     <general name="right/X"  class="act_position_x" site="right/gripper" refsite="right/actuation_center" gear="1 0 0 0 0 0"/>
     <general name="right/Y"  class="act_position_y" site="right/gripper" refsite="right/actuation_center" gear="0 1 0 0 0 0"/>
     <general name="right/Z"  class="act_position_z" site="right/gripper" refsite="right/actuation_center" gear="0 0 1 0 0 0"/>
     <general name="right/RX" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 1 0 0"/>
     <general name="right/RY" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 0 1 0"/>
     <general name="right/RZ" class="act_rotation" site="right/gripper" refsite="right/actuation_center" gear="0 0 0 0 0 1"/>
-    <general class="act_gripper" name="right/finger" joint="right/left_finger"/>
+    <general class="act_gripper" name="right/finger" joint="right/left_finger"/> -->
   </actuator>
 </mujoco>

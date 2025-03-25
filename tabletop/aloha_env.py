@@ -1,219 +1,12 @@
 import numpy as np
-import collections
-import os
 import random
 from tabletop.constants import *
 from tabletop.wrappers import *
-from tabletop.utils import sample_box_pose, sample_insertion_pose
-from dm_control import mujoco
-from dm_control.rl import control
-from dm_control.suite import base
-from pyquaternion import Quaternion
-from scipy.spatial.transform import Rotation
-
-class AlohaTask(base.Task):
-    def __init__(self, random=None):
-        self.obj_dict = {}
-        self.obj_id_counter = 0
-        self.time_limit = 20
-        self.reward = 0
-        self.reward_counter = 0
-        self.max_reward = 1
-        super().__init__(random=random)
-
-    def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0):
-        r = Rotation.from_euler('zyx', rpy, degrees=True)
-        quat = np.array(r.as_quat())
-        obj = GSOWrapper(name, pos, quat, scale, mass, self.obj_id_counter)        
-        self.obj_dict[nick] = obj
-        self.obj_id_counter += 1
-
-    def before_step(self, action, physics):
-        g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
-        g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-        np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
-
-    def after_step(self, physics):
-        self.update_contact(physics)
-
-    def initialize_robots(self, physics):
-        np.copyto(physics.data.qpos[:16], np.array([0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084, 0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084]))
-
-    def initialize_episode(self, physics):
-        self.initialize_robots(physics)
-        self.reward = 0
-        self.reward_counter = 0
-        super().initialize_episode(physics)
-
-    def set_object_pose(self, physics, nick, pos=None, rpy=None):
-        obj_id = self.obj_dict[nick].id
-        joint_id = 16 + 7 * obj_id
-        np.copyto(physics.data.qpos[joint_id:joint_id + 7], np.concatenate([pos, rpy_to_quat(*rpy)]))
-
-    def get_object_pose(self, physics, nick):
-        obj_id = self.obj_dict[nick].id
-        joint_id = 16 + 7 * obj_id
-        pos = physics.data.qpos[joint_id : joint_id + 3].copy()
-        quat = physics.data.qpos[joint_id + 3 : joint_id + 7].copy()
-        return pos, quat
-
-    @staticmethod
-    def get_qpos(physics):
-        qpos_raw = physics.data.qpos.copy()
-        left_qpos_raw = qpos_raw[:8]
-        right_qpos_raw = qpos_raw[8:16]
-        left_arm_qpos = left_qpos_raw[:6]
-        right_arm_qpos = right_qpos_raw[:6]
-        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
-        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
-        return np.concatenate([left_arm_qpos, left_gripper_qpos, right_arm_qpos, right_gripper_qpos])
-
-    @staticmethod
-    def get_qvel(physics):
-        qvel_raw = physics.data.qvel.copy()
-        left_qvel_raw = qvel_raw[:8]
-        right_qvel_raw = qvel_raw[8:16]
-        left_arm_qvel = left_qvel_raw[:6]
-        right_arm_qvel = right_qvel_raw[:6]
-        left_gripper_qvel = [ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN(left_qvel_raw[6])]
-        right_gripper_qvel = [ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN(right_qvel_raw[6])]
-        return np.concatenate([left_arm_qvel, left_gripper_qvel, right_arm_qvel, right_gripper_qvel])
-
-    def get_eepos(self, physics):
-        site_id_left = physics.model.site('left/gripper').id
-        site_id_right = physics.model.site('right/gripper').id
-
-        left_ee_pos_raw = physics.data.site_xpos[site_id_left].copy()
-        right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
-
-        left_ee_mat_raw = physics.data.site_xmat[site_id_left].copy().reshape(3, 3)
-        right_ee_mat_raw = physics.data.site_xmat[site_id_right].copy().reshape(3, 3)
-
-        left_ee_quat_raw = mat_to_quat(left_ee_mat_raw)
-        right_ee_quat_raw = mat_to_quat(right_ee_mat_raw)
-
-        right_ee_pos_raw, right_ee_quat_raw, _ = ltor(right_ee_pos_raw, right_ee_quat_raw)
-
-        ## Need to subtract from actuator centor
-        site_id_left_center = physics.model.site('left/actuation_center').id
-        site_id_right_center = physics.model.site('right/actuation_center').id
-        left_ee_pos_center = physics.data.site_xpos[site_id_left_center].copy()
-        right_ee_pos_center = physics.data.site_xpos[site_id_right_center].copy()
-        left_ee_pos_raw = left_ee_pos_raw - left_ee_pos_center
-        right_ee_pos_raw = right_ee_pos_raw - right_ee_pos_center
-
-        qpos_raw = physics.data.qpos.copy()
-        left_qpos_raw = qpos_raw[:8]
-        right_qpos_raw = qpos_raw[8:16]
-        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
-        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
-
-        return np.concatenate([left_ee_pos_raw, left_ee_quat_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_quat_raw, right_gripper_qpos])
-        
-    @staticmethod
-    def get_eepos_rpy(physics):
-        site_id_left = physics.model.site('left/gripper').id
-        site_id_right = physics.model.site('right/gripper').id
-
-        left_ee_pos_raw = physics.data.site_xpos[site_id_left].copy()
-        right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
-
-        left_ee_mat_raw = physics.data.site_xmat[site_id_left].copy().reshape(3, 3)
-        right_ee_mat_raw = physics.data.site_xmat[site_id_right].copy().reshape(3, 3)
-
-        left_ee_rpy_raw = mat_to_rpy(left_ee_mat_raw)
-        right_ee_rpy_raw = mat_to_rpy(right_ee_mat_raw)
-
-        right_ee_pos_raw, _, right_ee_rpy_raw = ltor(right_ee_pos_raw, None, right_ee_rpy_raw)
-
-        ## Need to subtract from actuator centor
-        site_id_left_center = physics.model.site('left/actuation_center').id
-        site_id_right_center = physics.model.site('right/actuation_center').id
-        left_ee_pos_center = physics.data.site_xpos[site_id_left_center].copy()
-        right_ee_pos_center = physics.data.site_xpos[site_id_right_center].copy()
-        left_ee_pos_raw = left_ee_pos_raw - left_ee_pos_center
-        right_ee_pos_raw = right_ee_pos_raw - right_ee_pos_center
-        
-        qpos_raw = physics.data.qpos.copy()
-        left_qpos_raw = qpos_raw[:8]
-        right_qpos_raw = qpos_raw[8:16]
-        left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
-        right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
-        return np.concatenate([left_ee_pos_raw, left_ee_rpy_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_rpy_raw, right_gripper_qpos])
-
-    @staticmethod
-    def get_env_state(physics):
-        return physics.data.qpos.copy()[16:]
-
-    def get_observation(self, physics):
-        # note: it is important to do .copy()
-        obs = collections.OrderedDict()
-        obs['qpos'] = self.get_qpos(physics)
-        obs['qvel'] = self.get_qvel(physics)
-        obs['ee_pos'] = self.get_eepos(physics)
-        obs['ee_rpy_pos'] = self.get_eepos_rpy(physics)
-        obs['env_state'] = self.get_env_state(physics)
-        obs['images'] = dict()
-        obs['images']['back'] = physics.render(height=480, width=640, camera_id='teleoperator_pov')
-        obs['images']['front'] = physics.render(height=480, width=640, camera_id='collaborator_pov')
-        obs['images']['wrist_left'] = physics.render(height=480, width=640, camera_id='wrist_cam_left')
-        obs['images']['wrist_right'] = physics.render(height=480, width=640, camera_id='wrist_cam_right')
-        return obs
-
-    def update_contact(self, physics):
-        self.all_contact_pairs = []
-        for i_contact in range(physics.data.ncon):
-            id_geom_1 = physics.data.contact[i_contact].geom1
-            id_geom_2 = physics.data.contact[i_contact].geom2
-            name_geom_1 = physics.model.id2name(id_geom_1, 'geom')
-            name_geom_2 = physics.model.id2name(id_geom_2, 'geom')
-            contact_pair = (name_geom_1, name_geom_2)
-            self.all_contact_pairs.append(contact_pair)
-
-    def get_reward(self, physics, reward_condition_list=[[False, 0]]):
-        self.max_reward = len(reward_condition_list)
-        if not self.reward == self.max_reward:
-            if reward_condition_list[self.reward][0]:
-                if self.reward_counter == reward_condition_list[self.reward][1]:
-                    self.reward += 1
-                    self.reward_counter = 0
-                else:
-                    self.reward_counter += 1
-            else:
-                self.reward_counter = 0
-        return self.reward
-
-    def get_touch_condition(self, physics, name1, name2): ## Call after update_contact
-        name1 = self.get_geoms(physics, name1)
-        name2 = self.get_geoms(physics, name2)
-        for contact_pair in self.all_contact_pairs:
-            if (contact_pair[0] in name1 and contact_pair[1] in name2) or \
-            (contact_pair[0] in name2 and contact_pair[1] in name1):
-                return True  # Contact detected
-        return False  # No contact
-
-    def get_geoms(self, physics, name):
-        if name == 'right_arm':
-            geoms = ['right/right_g0', 'right/right_g1', 'right/right_g2', 'right/left_g0', 'right/left_g1', 'right/left_g2']
-        elif name == 'left_arm':
-            geoms = ['left/right_g0', 'left/right_g1', 'left/right_g2', 'left/left_g0', 'left/left_g1', 'left/left_g2']
-        elif name == 'table':
-            geoms = ['table']
-        elif name in self.obj_dict.keys():
-            geoms = self.obj_dict[name].get_geoms()
-        else:
-            geoms = []
-        return geoms
-
-    def get_pos_condition(self, physics, pos1, pos2, delta=0.1):
-        return False
-
-    def get_quat_condtion(self, physics, quat1, quat2, delta=0.1):
-        return False
+from tabletop.aloha_env_base import AlohaTask
 
 class DishDrainer(AlohaTask):
     def __init__(self, random=None):
-        super().__init__(random=random) ## always first
+        super().__init__(random=random, single_arm=False) ## always first
         self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.6, 0.6, 0.6])
         self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], scale=[0.6, 0.6, 0.6], mass=0.2)
 
@@ -233,11 +26,121 @@ class DishDrainer(AlohaTask):
             [self.get_touch_condition(physics, 'drainer', 'plate'), 100],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
+    
+    def get_instruction(self, reward):
+        return 'Pick up the dish and put on to the drainer'
+    
+
+#####Single Arm Tasks##############################
+class UprightMug(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
+        self.add_object('mug', 'Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White', pos=[0.3, 0.1, 0.04], rpy=[90, 0, 20], scale=[0.8, 0.8, 0.8])
+
+    def initialize_episode(self, physics):
+        mug_pos = np.array([0.0, 0.0, 0.04])
+        mug_pos[:2] += np.random.uniform([0.1, -0.3], [0.25, 0.1], size=2)
+        mug_rpy = np.array([90, 0, 0],)
+        mug_rpy[-1] = np.random.uniform(-180, 180, 1)
+        self.set_object_pose(physics, 'mug', pos=mug_pos, rpy=mug_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        _, quat = self.get_object_pose(physics, 'mug')
+        rpy = quat_to_rpy(quat)
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'mug', 'table') and
+              self.get_touch_condition(physics, 'mug', 'right_arm') and
+              self.get_rpy_condtion(physics, rpy, [0, 0, 0], [1, 1, 0]), 10],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+    def get_instruction(self, reward):
+        return 'Upright the white mug'
+    
+class ToyBasket(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=True, single_arm_dir='left') ## always first
+        self.add_object('basket', 'Target_Basket_Medium', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
+        self.add_object('toy', 'My_First_Wiggle_Crocodile', pos=[-0.2, -0.3, 0.00], rpy=[0, 0, 20], scale=[0.6, 0.6, 0.6])
+
+    def initialize_episode(self, physics):
+        toy_pos = np.array([0.0, -0.15, 0.0])
+        toy_pos[:2] += np.random.uniform([-0.3, -0.25], [-0.05, -0.05], size=2)
+        toy_rpy = np.array([0, 0, 0],)
+        toy_rpy[-1] = np.random.uniform(-180, 180, 1)
+        self.set_object_pose(physics, 'toy', toy_pos, toy_rpy)
+
+        basket_pos = np.array([0.0, 0.0, 0.0])
+        basket_pos[0] += np.random.uniform(-0.25, -0.15, 1)
+        basket_rpy = np.array([0, 0, 0],)
+        basket_rpy[-1] = np.random.uniform(-180, 180, 1)
+        self.set_object_pose(physics, 'basket', basket_pos, basket_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        pos_toy, _ = self.get_object_pose(physics, 'toy')
+        pos_basket, _ = self.get_object_pose(physics, 'basket')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'basket', 'toy') and
+              self.get_pos_condition(physics, pos_toy, pos_basket, 0.05), 10],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+    def get_instruction(self, reward):
+        return 'Pick up the corocodile toy and put into the basket'
+    
+class StackPot(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
+        self.add_object('pot1', 'Cole_Hardware_Flower_Pot_1025', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4])
+        self.add_object('pot2', 'Cole_Hardware_Electric_Pot_Assortment_55', pos=[0.0, 0.00, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
+        self.add_object('pot3', 'Cole_Hardware_Electric_Pot_Cabana_55', pos=[0.0, -0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
+
+    def initialize_episode(self, physics):
+        pot1_pos = np.array([0.05, -0.15, 0.0])
+        pot2_pos = np.array([0.05, 0.15, 0.0])
+        pot3_pos = np.array([0.05, 0.00, 0.0])
+        pot1_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
+        pot2_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
+        pot3_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
+        
+        toy_rpy = np.array([0, 0, 0],)
+        toy_rpy[-1] = np.random.uniform(-180, 180, 1)
+
+        self.set_object_pose(physics, 'pot1', pot1_pos, toy_rpy)
+        self.set_object_pose(physics, 'pot2', pot2_pos, toy_rpy)
+        self.set_object_pose(physics, 'pot3', pot3_pos, toy_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'pot1', 'pot2') and self.get_touch_condition(physics, 'pot2', 'pot3')
+             or self.get_touch_condition(physics, 'pot1', 'pot3') and self.get_touch_condition(physics, 'pot2', 'pot3'), 10],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+    def get_instruction(self, reward):
+        return 'Stack the pots'
 
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
         'task_class': DishDrainer,
         'episode_len': 1200,
-        'camera_names': ['front', 'back']
+    },
+    'aloha_upright_mug': {
+        'task_class': UprightMug,
+        'episode_len': 600,
+    },
+    'aloha_toy_basket': {
+        'task_class': ToyBasket,
+        'episode_len': 600,
+    },
+    'aloha_stack_pot': {
+        'task_class': StackPot,
+        'episode_len': 600,
     }
 }

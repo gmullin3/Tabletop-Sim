@@ -36,7 +36,7 @@ def make_sim_env(task_name, action_type='joint_pos'):
         if action_type == 'joint_vel':
             task = get_joint_vel_wrapper(task_class)
         else:
-            task = task_lass(random=False)
+            task = task_class(random=False)
     physics = mujoco.Physics.from_xml_path(xml_path)
     env = control.Environment(physics, task, time_limit=time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
     return env
