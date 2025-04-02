@@ -6,7 +6,7 @@
   
 
   
-  <include file="aloha_left.xml"/>
+  <include file="aloha_right.xml"/>
   
 
   
@@ -234,157 +234,82 @@
     <geom class="frame" pos="0 -0.391 -0.01" quat="0 0 0 1" mesh="wormseye_mount"/>
     
   
-    <body name="Target_Basket_Medium_object_0" pos="0.0 0.15 0.0" quat="0.0 0.0 0.0 1.0">
-      <joint name="Target_Basket_Medium_joint_0" type="free" frictionloss="0.01"/>
-      <inertial pos="0 0 0" mass="1.0" diaginertia="0.002 0.002 0.002"/>
-      <geom material="Target_Basket_Medium_material_0_0" mesh="Target_Basket_Medium_model_0" type="mesh" contype="0" conaffinity="0" group="2"/>
-      <geom name="Target_Basket_Medium_collision_0_0" mesh="Target_Basket_Medium_collision_0_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_1_0" mesh="Target_Basket_Medium_collision_1_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_2_0" mesh="Target_Basket_Medium_collision_2_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_3_0" mesh="Target_Basket_Medium_collision_3_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_4_0" mesh="Target_Basket_Medium_collision_4_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_5_0" mesh="Target_Basket_Medium_collision_5_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_6_0" mesh="Target_Basket_Medium_collision_6_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_7_0" mesh="Target_Basket_Medium_collision_7_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_8_0" mesh="Target_Basket_Medium_collision_8_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_9_0" mesh="Target_Basket_Medium_collision_9_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_10_0" mesh="Target_Basket_Medium_collision_10_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_11_0" mesh="Target_Basket_Medium_collision_11_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_12_0" mesh="Target_Basket_Medium_collision_12_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_13_0" mesh="Target_Basket_Medium_collision_13_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_14_0" mesh="Target_Basket_Medium_collision_14_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_15_0" mesh="Target_Basket_Medium_collision_15_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_16_0" mesh="Target_Basket_Medium_collision_16_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_17_0" mesh="Target_Basket_Medium_collision_17_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_18_0" mesh="Target_Basket_Medium_collision_18_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_19_0" mesh="Target_Basket_Medium_collision_19_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_20_0" mesh="Target_Basket_Medium_collision_20_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_21_0" mesh="Target_Basket_Medium_collision_21_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_22_0" mesh="Target_Basket_Medium_collision_22_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_23_0" mesh="Target_Basket_Medium_collision_23_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_24_0" mesh="Target_Basket_Medium_collision_24_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_25_0" mesh="Target_Basket_Medium_collision_25_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_26_0" mesh="Target_Basket_Medium_collision_26_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_27_0" mesh="Target_Basket_Medium_collision_27_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_28_0" mesh="Target_Basket_Medium_collision_28_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_29_0" mesh="Target_Basket_Medium_collision_29_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_30_0" mesh="Target_Basket_Medium_collision_30_0" type="mesh" group="3"/>
-      <geom name="Target_Basket_Medium_collision_31_0" mesh="Target_Basket_Medium_collision_31_0" type="mesh" group="3"/>
-    </body>
-    <body name="My_First_Wiggle_Crocodile_object_1" pos="-0.2 -0.3 0.0" quat="0.17364817766693033 0.0 0.0 0.984807753012208">
-      <joint name="My_First_Wiggle_Crocodile_joint_1" type="free" frictionloss="0.01"/>
-      <inertial pos="0 0 0" mass="1.0" diaginertia="0.002 0.002 0.002"/>
-      <geom material="My_First_Wiggle_Crocodile_material_0_1" mesh="My_First_Wiggle_Crocodile_model_1" type="mesh" contype="0" conaffinity="0" group="2"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_0_1" mesh="My_First_Wiggle_Crocodile_collision_0_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_1_1" mesh="My_First_Wiggle_Crocodile_collision_1_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_2_1" mesh="My_First_Wiggle_Crocodile_collision_2_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_3_1" mesh="My_First_Wiggle_Crocodile_collision_3_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_4_1" mesh="My_First_Wiggle_Crocodile_collision_4_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_5_1" mesh="My_First_Wiggle_Crocodile_collision_5_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_6_1" mesh="My_First_Wiggle_Crocodile_collision_6_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_7_1" mesh="My_First_Wiggle_Crocodile_collision_7_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_8_1" mesh="My_First_Wiggle_Crocodile_collision_8_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_9_1" mesh="My_First_Wiggle_Crocodile_collision_9_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_10_1" mesh="My_First_Wiggle_Crocodile_collision_10_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_11_1" mesh="My_First_Wiggle_Crocodile_collision_11_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_12_1" mesh="My_First_Wiggle_Crocodile_collision_12_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_13_1" mesh="My_First_Wiggle_Crocodile_collision_13_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_14_1" mesh="My_First_Wiggle_Crocodile_collision_14_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_15_1" mesh="My_First_Wiggle_Crocodile_collision_15_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_16_1" mesh="My_First_Wiggle_Crocodile_collision_16_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_17_1" mesh="My_First_Wiggle_Crocodile_collision_17_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_18_1" mesh="My_First_Wiggle_Crocodile_collision_18_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_19_1" mesh="My_First_Wiggle_Crocodile_collision_19_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_20_1" mesh="My_First_Wiggle_Crocodile_collision_20_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_21_1" mesh="My_First_Wiggle_Crocodile_collision_21_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_22_1" mesh="My_First_Wiggle_Crocodile_collision_22_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_23_1" mesh="My_First_Wiggle_Crocodile_collision_23_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_24_1" mesh="My_First_Wiggle_Crocodile_collision_24_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_25_1" mesh="My_First_Wiggle_Crocodile_collision_25_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_26_1" mesh="My_First_Wiggle_Crocodile_collision_26_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_27_1" mesh="My_First_Wiggle_Crocodile_collision_27_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_28_1" mesh="My_First_Wiggle_Crocodile_collision_28_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_29_1" mesh="My_First_Wiggle_Crocodile_collision_29_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_30_1" mesh="My_First_Wiggle_Crocodile_collision_30_1" type="mesh" group="3"/>
-      <geom name="My_First_Wiggle_Crocodile_collision_31_1" mesh="My_First_Wiggle_Crocodile_collision_31_1" type="mesh" group="3"/>
+    <body name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_object_0" pos="0.3 0.1 0.04" quat="0.17364817766693033 0.0 0.0 0.984807753012208">
+      <joint name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_joint_0" type="free" frictionloss="0.01"/>
+      <inertial pos="0 0 0" mass="0.15" diaginertia="0.002 0.002 0.002"/>
+      <geom material="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_material_0_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_model_0" type="mesh" contype="0" conaffinity="0" group="2"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_0_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_0_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_1_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_1_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_2_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_2_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_3_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_3_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_4_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_4_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_5_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_5_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_6_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_6_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_7_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_7_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_8_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_8_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_9_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_9_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_10_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_10_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_11_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_11_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_12_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_12_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_13_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_13_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_14_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_14_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_15_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_15_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_16_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_16_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_17_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_17_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_18_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_18_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_19_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_19_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_20_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_20_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_21_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_21_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_22_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_22_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_23_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_23_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_24_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_24_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_25_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_25_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_26_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_26_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_27_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_27_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_28_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_28_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_29_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_29_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_30_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_30_0" type="mesh" group="3"/>
+      <geom name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_31_0" mesh="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_31_0" type="mesh" group="3"/>
     </body>
   </worldbody>
   
 
-  <include file="filtered_cartesian_actuators_left.xml"/>
+  <include file="filtered_cartesian_actuators_right.xml"/>
   <asset>
-    <texture type="2d" name="Target_Basket_Medium_texture_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/texture.png"/>
-    <material name="Target_Basket_Medium_material_0_0" texture="Target_Basket_Medium_texture_0"/>
-    <mesh name="Target_Basket_Medium_model_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_0_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_0.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_1_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_1.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_2_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_2.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_3_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_3.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_4_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_4.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_5_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_5.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_6_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_6.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_7_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_7.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_8_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_8.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_9_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_9.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_10_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_10.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_11_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_11.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_12_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_12.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_13_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_13.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_14_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_14.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_15_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_15.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_16_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_16.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_17_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_17.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_18_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_18.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_19_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_19.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_20_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_20.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_21_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_21.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_22_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_22.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_23_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_23.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_24_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_24.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_25_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_25.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_26_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_26.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_27_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_27.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_28_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_28.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_29_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_29.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_30_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_30.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="Target_Basket_Medium_collision_31_0" file="mujoco_scanned_objects/models/Target_Basket_Medium/model_collision_31.obj" scale="0.6 0.6 0.6"/>
+    <texture type="2d" name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_texture_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/texture.png"/>
+    <material name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_material_0_0" texture="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_texture_0"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_model_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_0_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_0.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_1_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_1.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_2_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_2.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_3_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_3.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_4_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_4.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_5_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_5.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_6_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_6.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_7_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_7.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_8_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_8.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_9_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_9.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_10_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_10.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_11_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_11.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_12_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_12.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_13_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_13.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_14_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_14.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_15_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_15.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_16_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_16.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_17_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_17.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_18_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_18.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_19_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_19.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_20_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_20.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_21_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_21.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_22_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_22.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_23_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_23.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_24_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_24.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_25_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_25.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_26_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_26.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_27_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_27.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_28_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_28.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_29_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_29.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_30_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_30.obj" scale="0.8 0.8 0.8"/>
+    <mesh name="Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White_collision_31_0" file="mujoco_scanned_objects/models/Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White/model_collision_31.obj" scale="0.8 0.8 0.8"/>
   </asset>
-  <asset>
-    <texture type="2d" name="My_First_Wiggle_Crocodile_texture_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/texture.png"/>
-    <material name="My_First_Wiggle_Crocodile_material_0_1" texture="My_First_Wiggle_Crocodile_texture_1"/>
-    <mesh name="My_First_Wiggle_Crocodile_model_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_0_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_0.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_1_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_1.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_2_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_2.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_3_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_3.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_4_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_4.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_5_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_5.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_6_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_6.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_7_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_7.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_8_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_8.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_9_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_9.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_10_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_10.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_11_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_11.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_12_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_12.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_13_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_13.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_14_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_14.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_15_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_15.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_16_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_16.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_17_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_17.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_18_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_18.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_19_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_19.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_20_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_20.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_21_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_21.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_22_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_22.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_23_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_23.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_24_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_24.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_25_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_25.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_26_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_26.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_27_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_27.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_28_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_28.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_29_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_29.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_30_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_30.obj" scale="0.6 0.6 0.6"/>
-    <mesh name="My_First_Wiggle_Crocodile_collision_31_1" file="mujoco_scanned_objects/models/My_First_Wiggle_Crocodile/model_collision_31.obj" scale="0.6 0.6 0.6"/>
-  </asset>
-  <include file="grid.xml"/>
 </mujoco>

@@ -35,11 +35,24 @@ class AlohaTask(base.Task):
     def before_step(self, action, physics):
         if self.single_arm:
             g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
+            if self.action_space == 'ee_quat_pos':
+                rpy_right = quat_to_rpy(*action[3:7])
+                # np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_right_ctrl]]))
+                np.copyto(physics.data.ctrl, np.concatenate([action[:3], rpy_right, [g_right_ctrl]]))
+                print(rpy_right)
+            else:
+                np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
         else:
-            g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
-            g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
+            if self.action_space == 'ee_quat_pos':
+                g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[7])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                rpy_left = quat_to_rpy(*action[3:7])
+                rpy_right = quat_to_rpy(*action[11:-1])
+                np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_left_ctrl], action[8:10], [g_right_ctrl]]))
+            else:
+                g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
 
     def after_step(self, physics):
         self.update_contact(physics)
@@ -219,7 +232,7 @@ class AlohaTask(base.Task):
         if not self.single_arm:
             obs['images']['wrist_left'] = physics.render(height=240, width=320, camera_id='wrist_cam_left')
         obs['images']['wrist_right'] = physics.render(height=240, width=320, camera_id='wrist_cam_right')
-        obs['langauge_insturction'] = self.get_instruction(self.reward)
+        obs['language_instruction'] = self.get_instruction(self.reward)
         return obs
 
     def update_contact(self, physics):

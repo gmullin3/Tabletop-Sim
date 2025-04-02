@@ -38,9 +38,15 @@ def env(task_name, action_space, test=False):
                 ET.SubElement(root, 'include', file="joint_position_actuators.xml")
         else:
             if task.single_arm:
-                ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
+                if action_space == 'ee_quat_pos':
+                    ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
+                else:
+                    ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
             else:
-                ET.SubElement(root, 'include', file="joint_position_actuators.xml")
+                if action_space == 'ee_quat_pos':
+                    ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
+                else:
+                    ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
 
         for obj in task.obj_dict.values():
             asset, body = obj.generate_xml()
@@ -56,5 +62,6 @@ def env(task_name, action_space, test=False):
         with open(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'), "w", encoding="utf-8") as f:
             f.write(output_xml)
         physics = mujoco.Physics.from_xml_path(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'))
+        task.action_space = action_space
         env = env = control.Environment(physics, task, time_limit=task.time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
     return env

@@ -35,7 +35,7 @@ class DishDrainer(AlohaTask):
 class UprightMug(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
-        self.add_object('mug', 'Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White', pos=[0.3, 0.1, 0.04], rpy=[90, 0, 20], scale=[0.8, 0.8, 0.8])
+        self.add_object('mug', 'Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White', pos=[0.3, 0.1, 0.04], rpy=[0, 0, 20], scale=[0.8, 0.8, 0.8], mass=0.15)
 
     def initialize_episode(self, physics):
         mug_pos = np.array([0.0, 0.0, 0.04])
@@ -48,7 +48,7 @@ class UprightMug(AlohaTask):
     def get_reward(self, physics):
         ## [condition, counter]
         _, quat = self.get_object_pose(physics, 'mug')
-        rpy = quat_to_rpy(quat)
+        rpy = quat_to_rpy(*quat)
         reward_condition_list = [
             [self.get_touch_condition(physics, 'mug', 'table') and
               self.get_touch_condition(physics, 'mug', 'right_arm') and
@@ -63,7 +63,7 @@ class ToyBasket(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=True, single_arm_dir='left') ## always first
         self.add_object('basket', 'Target_Basket_Medium', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
-        self.add_object('toy', 'My_First_Wiggle_Crocodile', pos=[-0.2, -0.3, 0.00], rpy=[0, 0, 20], scale=[0.6, 0.6, 0.6])
+        self.add_object('toy', 'My_First_Wiggle_Crocodile', pos=[-0.2, -0.3, 0.00], rpy=[0, 0, 20], scale=[0.6, 0.6, 0.6], mass=0.15)
 
     def initialize_episode(self, physics):
         toy_pos = np.array([0.0, -0.15, 0.0])
@@ -95,9 +95,9 @@ class ToyBasket(AlohaTask):
 class StackPot(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
-        self.add_object('pot1', 'Cole_Hardware_Flower_Pot_1025', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4])
-        self.add_object('pot2', 'Cole_Hardware_Electric_Pot_Assortment_55', pos=[0.0, 0.00, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
-        self.add_object('pot3', 'Cole_Hardware_Electric_Pot_Cabana_55', pos=[0.0, -0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
+        self.add_object('pot1', 'Cole_Hardware_Flower_Pot_1025', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4], mass=0.2)
+        self.add_object('pot2', 'Cole_Hardware_Electric_Pot_Assortment_55', pos=[0.0, 0.00, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
+        self.add_object('pot3', 'Cole_Hardware_Electric_Pot_Cabana_55', pos=[0.0, -0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
 
     def initialize_episode(self, physics):
         pot1_pos = np.array([0.05, -0.15, 0.0])
