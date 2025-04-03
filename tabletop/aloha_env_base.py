@@ -48,7 +48,7 @@ class AlohaTask(base.Task):
             action[3] = rx
             action[4] = ry
             action[5] = rz
-            np.copyto(physics.data.ctrl, np.concatenate([action[:3], rpy_right, [g_right_ctrl]]))
+            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
         else:
             if self.action_space == 'ee_quat_pos':
                 g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[7])
