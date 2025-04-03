@@ -1,3 +1,4 @@
+# import cv2
 import sys
 import os
 import numpy as np
@@ -15,6 +16,7 @@ from PyQt5.QtGui import QPixmap, QImage, QFont
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 import time
 import rclpy
+from scipy.spatial.transform import Rotation as R
 
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
@@ -23,6 +25,7 @@ class RenderThread(QThread):
     def __init__(self, env, physics, height, width, gello, num_episode, save_dir):
         super().__init__()
         self.env = env
+        self.task = env.task
         self.physics = physics
         self.height = height
         self.width = width
@@ -38,11 +41,24 @@ class RenderThread(QThread):
 
     def run(self):
         while self.running:
-            reset_flag = True
+            while not self.gello.start and self.running:
+                if not self.reset_flag:
+                    self.save_demo()
+                    ts = self.env.reset()
+                    self.episode = [ts]
+                    self.episode_action = []
+                    self.reset_flag = True
+                    self.terminate_signal = False
+                img = self.physics.render(self.height, self.width, camera_id=0)
+                img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
+                self.image_signal.emit(img)
+                time.sleep(DT)
+            self.reset_flag = True
             while self.gello.start and self.running:
                 start_time = time.time()
-                action = self.process_action(self.gello.action)
-                self.episdoe_action.append(action)
+                action = self.process_action()
+                # print(action)
+                self.episode_action.append(action)
 
                 ts = self.env.step(action)
                 self.reward_signal.emit(np.array([ts.reward, self.env.task.max_reward]))  # Send reward to UI
@@ -59,43 +75,34 @@ class RenderThread(QThread):
                 if ts.step_type == dm_env.StepType.LAST:
                     self.gello.start = False
                     self.terminate_signal = True
+                    self.terminate_signal = False
                 ##
 
                 ## Deal with latency
                 delta_time=  time.time() - start_time
-                time.sleep(DT - delta_time if DT - delta_time > 0 else 0)
+                time.sleep(DT*2 - delta_time if DT*2 - delta_time > 0 else 0)
+            self.reset_flag = False
 
-            while not self.gello.start and self.running:
-                if reset_flag == False:
-                    self.save_demo()
-                    ts = self.env.reset()
-                    self.episode = [ts]
-                    self.episode_action = []
-                    reset_flag = True
-                    self.terminate_signal = False
-                img = self.physics.render(self.height, self.width, camera_id=0)
-                img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
-                self.image_signal.emit(img)
-                time.sleep(DT)
 
     def process_action(self):
         left_grp = self.gello.action['left_gripper_command']
         right_grp = self.gello.action['right_gripper_command']
 
-        if self.action_type.split('_')[0] == 'ee':
+        if self.env.task.action_space.split('_')[0] == 'ee':
             ## Assuming quaternion control
-            if self.single_arm:
+            if self.task.single_arm:
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
-                right_quat = quat_to_rpy(*right_pos[3:6])
+                right_rpy = right_pos[3:6]
+                right_quat = rpy_to_quat(*right_pos[3:6])
                 action = np.concatenate([right_xyz, right_quat, 1 - right_grp])
             else:
                 left_pos = self.gello.action['left_pose']
                 left_xyz = left_pos[:3]
-                left_quat = quat_to_rpy(*left_pos[3:6])
+                left_quat = rpy_to_quat(*left_pos[3:6])
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
-                right_quat = quat_to_rpy(*right_pos[3:6])
+                right_quat = rpy_to_quat(*right_pos[3:6])
                 action = np.concatenate([left_xyz, left_quat, 1 - left_grp, right_xyz, right_quat, 1 - right_grp])
         else:
             if self.task.single_arm:
@@ -125,6 +132,7 @@ class RenderThread(QThread):
 
     def save_demo(self):
         if self.terminate_signal:
+            print('failed, not saving demos')
             return
         num = self.episode_count
         data_dict = {
@@ -132,7 +140,7 @@ class RenderThread(QThread):
             '/observations/state/qvel': [],
             '/observations/state/ee_pos': [],
             '/observations/state/ee_rpy_pos': [],
-            '/observations/language_instruction': [],
+            '/observations/state/language_instruction': [],
             '/observations/state/env_state': [],
             '/observations/images/front': [],
             '/observations/images/back': [],
@@ -147,6 +155,7 @@ class RenderThread(QThread):
         max_timesteps = len(self.episode_action)
         for i in range(max_timesteps):
             ts = self.episode.pop(0)
+            print(ts.observation.keys())
             action = self.episode_action.pop(0)
             data_dict['/observations/state/qpos'].append(ts.observation['qpos'])
             data_dict['/observations/state/qvel'].append(ts.observation['qvel'])
@@ -160,7 +169,7 @@ class RenderThread(QThread):
             else:
                 data_dict['/observations/images/wrist_right'].append(ts.observation['images']['wrist_right'])
                 data_dict['/observations/images/wrist_left'].append(ts.observation['images']['wrist_left'])
-            data_dict['/observations/language_instruction'].append(ts.observation['language_instruction'])
+            data_dict['/observations/state/language_instruction'].append(ts.observation['language_instruction'])
             data_dict['/action'].append(action)
         
         dataset_path = os.path.join(self.save_dir, f'episode_{num}.hdf5')
@@ -173,7 +182,7 @@ class RenderThread(QThread):
             ee_pos = state.create_dataset('ee_pos', (max_timesteps, 8 if self.task.single_arm else 16))
             ee_rpy_pos = state.create_dataset('ee_rpy_pos', (max_timesteps, 7 if self.task.single_arm else 14))
             env_state = state.create_dataset('env_state', (max_timesteps, data_dict['/observations/state/env_state'][0].shape[0]))
-            instructions = state.create_dataset('language_instructions', (max_timesteps,), dtype=h5py.string_dtype(encoding='utf-8'))
+            instructions = state.create_dataset('language_instruction', (max_timesteps,), dtype=h5py.string_dtype(encoding='utf-8'))
             image = obs.create_group('images')
             image_front = image.create_dataset('front', (max_timesteps, 480, 640, 3), dtype='uint8', chunks=(1, 480, 640, 3), )
             image_back = image.create_dataset('back', (max_timesteps, 480, 640, 3), dtype='uint8', chunks=(1, 480, 640, 3), )
@@ -185,6 +194,7 @@ class RenderThread(QThread):
             action = root.create_dataset('action', (max_timesteps, data_dict['/action'][0].shape[0]))
 
             for name, array in data_dict.items():
+                # print(name)
                 root[name][...] = array
         print(f'Saved {dataset_path}')
         num += 1
@@ -264,10 +274,10 @@ class SimulationUI(QWidget):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--task_name', action='store', type=str, default='aloha_dish_drainer', required=False)
+    parser.add_argument('-t', '--task_name', action='store', type=str, default='aloha_upright_mug', required=False)
     parser.add_argument('-a', '--action_type', action='store', type=str, default='ee_quat_pos', required=False)
     parser.add_argument('-n', '--num_episodes', action='store', type=int, default=1)
-    parser.add_argument('-d', '--save_dir', action='store', type=str, default='datasets/')
+    parser.add_argument('-d', '--save_dir', action='store', type=str, default='datasets')
     
     args = parser.parse_args()
     

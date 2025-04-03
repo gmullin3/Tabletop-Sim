@@ -36,20 +36,30 @@ class AlohaTask(base.Task):
     def before_step(self, action, physics):
         if self.single_arm:
             g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-            rotation = Rotation.from_euler('zyx', [action[5], action[4], action[3]], degrees=False)
+            if self.action_space == 'ee_quat_pos':
+                rpy_right = quat_to_rpy(*action[3:7])
+            else:
+                rpy_right = action[3:6]
+            rotation = Rotation.from_euler('zyx', [rpy_right[2], rpy_right[1], rpy_right[0]], degrees=False)
             rot_matrix = rotation.as_matrix()
-            # RX, RY, RZ 추출
             rx = np.arctan2(rot_matrix[2, 1], rot_matrix[2, 2])  # Roll (X축 회전)
             ry = np.arcsin(-rot_matrix[2, 0])  # Pitch (Y축 회전)
             rz = np.arctan2(rot_matrix[1, 0], rot_matrix[0, 0])  # Yaw (Z축 회전)
             action[3] = rx
             action[4] = ry
             action[5] = rz
-            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
+            np.copyto(physics.data.ctrl, np.concatenate([action[:3], rpy_right, [g_right_ctrl]]))
         else:
-            g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
-            g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
+            if self.action_space == 'ee_quat_pos':
+                g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[7])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                rpy_left = quat_to_rpy(*action[3:7])
+                rpy_right = quat_to_rpy(*action[11:-1])
+                np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_left_ctrl], action[8:10], [g_right_ctrl]]))
+            else:
+                g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
 
     def after_step(self, physics):
         self.update_contact(physics)
@@ -229,7 +239,7 @@ class AlohaTask(base.Task):
         if not self.single_arm:
             obs['images']['wrist_left'] = physics.render(height=240, width=320, camera_id='wrist_cam_left')
         obs['images']['wrist_right'] = physics.render(height=240, width=320, camera_id='wrist_cam_right')
-        obs['langauge_insturction'] = self.get_instruction(self.reward)
+        obs['language_instruction'] = self.get_instruction(self.reward)
         return obs
 
     def update_contact(self, physics):
