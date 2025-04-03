@@ -11,6 +11,7 @@ from dm_control.suite import base
 from pyquaternion import Quaternion
 from scipy.spatial.transform import Rotation
 
+
 class AlohaTask(base.Task):
     def __init__(self, random=None, single_arm=False, single_arm_dir=None):
         self.obj_dict = {}
@@ -35,6 +36,15 @@ class AlohaTask(base.Task):
     def before_step(self, action, physics):
         if self.single_arm:
             g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+            rotation = Rotation.from_euler('zyx', [action[5], action[4], action[3]], degrees=False)
+            rot_matrix = rotation.as_matrix()
+            # RX, RY, RZ 추출
+            rx = np.arctan2(rot_matrix[2, 1], rot_matrix[2, 2])  # Roll (X축 회전)
+            ry = np.arcsin(-rot_matrix[2, 0])  # Pitch (Y축 회전)
+            rz = np.arctan2(rot_matrix[1, 0], rot_matrix[0, 0])  # Yaw (Z축 회전)
+            action[3] = rx
+            action[4] = ry
+            action[5] = rz
             np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
         else:
             g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
