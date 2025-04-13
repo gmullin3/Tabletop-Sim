@@ -121,7 +121,7 @@ class RenderThread(QThread):
                 remap_idx = [0, 1, 2, 4, 3, 5]
                 left_joint = left_joint[remap_idx]
                 right_joint = right_joint[remap_idx]
-                left_joint[0] = left_joint[0] - np.pi / 2
+                left_joint[0] = left_joint[0] + np.pi / 2
                 right_joint[0] = right_joint[0] - np.pi / 2
                 left_joint[1] = left_joint[1] - np.pi / 2
                 right_joint[1] = right_joint[1] - np.pi / 2
@@ -212,6 +212,7 @@ class SimulationUI(QWidget):
         self.num_episodes = num_episodes
         self.action_type = action_type
         self.save_dir = f'{save_dir}/{task_name}/'
+        os.makedirs(self.save_dir, exist_ok=True)
         self.width = width
         self.height = height
 

@@ -40,14 +40,17 @@ class AlohaTask(base.Task):
                 rpy_right = quat_to_rpy(*action[3:7])
             else:
                 rpy_right = action[3:6]
-            rotation = Rotation.from_euler('zyx', [rpy_right[2], rpy_right[1], rpy_right[0]], degrees=False)
-            rot_matrix = rotation.as_matrix()
-            rx = np.arctan2(rot_matrix[2, 1], rot_matrix[2, 2])  # Roll (X축 회전)
-            ry = np.arcsin(-rot_matrix[2, 0])  # Pitch (Y축 회전)
-            rz = np.arctan2(rot_matrix[1, 0], rot_matrix[0, 0])  # Yaw (Z축 회전)
-            action[3] = rx
-            action[4] = ry
-            action[5] = rz
+            # rotation = Rotation.from_euler('zyx', [rpy_right[2], rpy_right[1], rpy_right[0]], degrees=False)
+            # rot_matrix = rotation.as_matrix()
+            # rx = np.arctan2(rot_matrix[2, 1], rot_matrix[2, 2])  # Roll (X축 회전)
+            # ry = np.arcsin(-rot_matrix[2, 0])  # Pitch (Y축 회전)
+            # rz = np.arctan2(rot_matrix[1, 0], rot_matrix[0, 0])  # Yaw (Z축 회전)
+            # action[3] = rx
+            # action[4] = ry
+            # action[5] = rz
+            # rpy_right[2] = 0
+            # rpy_right[0] = 0
+            action[3:6] = rpy_right
             np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
         else:
             if self.action_space == 'ee_quat_pos':
@@ -55,7 +58,7 @@ class AlohaTask(base.Task):
                 g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
                 rpy_left = quat_to_rpy(*action[3:7])
                 rpy_right = quat_to_rpy(*action[11:-1])
-                np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_left_ctrl], action[8:10], [g_right_ctrl]]))
+                np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_left_ctrl], action[8:-1], [g_right_ctrl]]))
             else:
                 g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
                 g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
