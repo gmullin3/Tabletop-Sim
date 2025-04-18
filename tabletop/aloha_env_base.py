@@ -10,7 +10,34 @@ from dm_control.rl import control
 from dm_control.suite import base
 from pyquaternion import Quaternion
 from scipy.spatial.transform import Rotation
+from dm_control.utils import inverse_kinematics as ik
+from tabletop.constants import ALOHA_XML_DIR
 
+_JOINTS = ['left/waist', 'left/shoulder', 'left/elbow', 'left/forearm_roll', 'left/wrist_angle', 'left/wrist_rotate']
+_TOL = 1.2e-14
+_MAX_STEPS = 100
+_MAX_RESETS = 10
+_SITE_NAME = 'left/gripper'
+
+class _ResetArm:
+  def __init__(self, seed=None):
+    self._rng = np.random.RandomState(seed)
+    self._lower = None
+    self._upper = None
+
+  def _cache_bounds(self, physics):
+    self._lower, self._upper = physics.named.model.jnt_range[_JOINTS].T
+    limited = physics.named.model.jnt_limited[_JOINTS].astype(bool)
+    # Positions for hinge joints without limits are sampled between 0 and 2pi
+    self._lower[~limited] = 0
+    self._upper[~limited] = 2 * np.pi
+
+  def __call__(self, physics):
+    if self._lower is None:
+      self._cache_bounds(physics)
+    # NB: This won't work for joints with > 1 DOF
+    new_qpos = self._rng.uniform(self._lower, self._upper)
+    physics.named.data.qpos[_JOINTS] = new_qpos
 
 class AlohaTask(base.Task):
     def __init__(self, random=None, single_arm=False, single_arm_dir=None):
@@ -24,6 +51,7 @@ class AlohaTask(base.Task):
         self.single_arm_dir = single_arm_dir
         assert (self.single_arm and single_arm_dir in ['right', 'left']) or not self.single_arm, 'Wrong single arm direction'
         self.robot_offset = 8 if self.single_arm else 16
+        self.ik_physics = mujoco.Physics.from_xml_path(f'{ALOHA_XML_DIR}/aloha_ik.xml')
         super().__init__(random=random)
 
     def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0):
@@ -33,32 +61,49 @@ class AlohaTask(base.Task):
         self.obj_dict[nick] = obj
         self.obj_id_counter += 1
 
+    def get_joint_pos(self, target_pos, target_quat):
+        count = 0
+        physics2 = self.ik_physics.copy(share_model=True)
+        resetter = _ResetArm(seed=0)
+        while True:
+            result = ik.qpos_from_site_pose(
+                physics=physics2,
+                site_name=_SITE_NAME,
+                target_pos=target_pos,
+                target_quat=target_quat,
+                joint_names=_JOINTS,
+                tol=_TOL,
+                max_steps=_MAX_STEPS,
+                inplace=True,
+            )
+            # print(result.qpos)
+            if result.success:
+                break
+            elif count < _MAX_RESETS:
+                resetter(physics2)
+                count += 1
+            else:
+                raise RuntimeError(
+                    'Failed to find a solution within %i attempts.' % _MAX_RESETS)
+        return result.qpos[:6]
+
+
     def before_step(self, action, physics):
         if self.single_arm:
-            g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
             if self.action_space == 'ee_quat_pos':
-                rpy_right = quat_to_rpy(*action[3:7])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                qpos = self.get_joint_pos(action[0:3], action[3:7])
+                np.copyto(physics.data.ctrl, np.concatenate([qpos, [g_right_ctrl]]))
             else:
-                rpy_right = action[3:6]
-            # rotation = Rotation.from_euler('zyx', [rpy_right[2], rpy_right[1], rpy_right[0]], degrees=False)
-            # rot_matrix = rotation.as_matrix()
-            # rx = np.arctan2(rot_matrix[2, 1], rot_matrix[2, 2])  # Roll (X축 회전)
-            # ry = np.arcsin(-rot_matrix[2, 0])  # Pitch (Y축 회전)
-            # rz = np.arctan2(rot_matrix[1, 0], rot_matrix[0, 0])  # Yaw (Z축 회전)
-            # action[3] = rx
-            # action[4] = ry
-            # action[5] = rz
-            # rpy_right[2] = 0
-            # rpy_right[0] = 0
-            action[3:6] = rpy_right
-            np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_right_ctrl]]))
         else:
             if self.action_space == 'ee_quat_pos':
                 g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[7])
                 g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
-                rpy_left = quat_to_rpy(*action[3:7])
-                rpy_right = quat_to_rpy(*action[11:-1])
-                np.copyto(physics.data.ctrl, np.concatenate([action[:7], [g_left_ctrl], action[8:-1], [g_right_ctrl]]))
+                qpos_left = self.get_joint_pos(action[0:3], action[3:7])
+                qpos_right = self.get_joint_pos(action[8:11], action[11:-1])
+                np.copyto(physics.data.ctrl, np.concatenate([qpos_left, [g_left_ctrl], qpos_right, [g_right_ctrl]]))
             else:
                 g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
                 g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
@@ -126,7 +171,7 @@ class AlohaTask(base.Task):
     def get_eepos(self, physics):
         if self.single_arm:
             ## Fix this to singlearm_dir
-            site_id_right = physics.model.site('right/gripper').id
+            site_id_right = physics.model.site(f'{self.single_arm_dir}/gripper').id
 
             right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
             right_ee_mat_raw = physics.data.site_xmat[site_id_right].copy().reshape(3, 3)
@@ -135,7 +180,7 @@ class AlohaTask(base.Task):
             right_ee_pos_raw, right_ee_quat_raw, _ = ltor(right_ee_pos_raw, right_ee_quat_raw)
 
             ## Need to subtract from actuator centor
-            site_id_right_center = physics.model.site('right/actuation_center').id
+            site_id_right_center = physics.model.site(f'{self.single_arm_dir}/actuation_center').id
             right_ee_pos_center = physics.data.site_xpos[site_id_right_center].copy()
             right_ee_pos_raw = right_ee_pos_raw - right_ee_pos_center
 
@@ -176,7 +221,7 @@ class AlohaTask(base.Task):
         
     def get_eepos_rpy(self, physics):
         if self.single_arm:
-            site_id_right = physics.model.site('right/gripper').id
+            site_id_right = physics.model.site(f'{self.single_arm_dir}/gripper').id
 
             right_ee_pos_raw = physics.data.site_xpos[site_id_right].copy()
 
@@ -187,7 +232,7 @@ class AlohaTask(base.Task):
             right_ee_pos_raw, _, right_ee_rpy_raw = ltor(right_ee_pos_raw, None, right_ee_rpy_raw)
 
             ## Need to subtract from actuator centor
-            site_id_right_center = physics.model.site('right/actuation_center').id
+            site_id_right_center = physics.model.site(f'{self.single_arm_dir}/actuation_center').id
             right_ee_pos_center = physics.data.site_xpos[site_id_right_center].copy()
             right_ee_pos_raw = right_ee_pos_raw - right_ee_pos_center
             
@@ -241,7 +286,9 @@ class AlohaTask(base.Task):
         obs['images']['front'] = physics.render(height=480, width=640, camera_id='collaborator_pov')
         if not self.single_arm:
             obs['images']['wrist_left'] = physics.render(height=240, width=320, camera_id='wrist_cam_left')
-        obs['images']['wrist_right'] = physics.render(height=240, width=320, camera_id='wrist_cam_right')
+            obs['images']['wrist_right'] = physics.render(height=240, width=320, camera_id='wrist_cam_right')
+        else:
+            obs['images'][f'wrist'] = physics.render(height=240, width=320, camera_id=f'wrist_cam_{self.single_arm_dir}')
         obs['language_instruction'] = self.get_instruction(self.reward)
         return obs
 

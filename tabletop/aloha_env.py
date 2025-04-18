@@ -137,7 +137,7 @@ ALOHA_TASK_CONFIGS = {
     },
     'aloha_toy_basket': {
         'task_class': ToyBasket,
-        'episode_len': 600,
+        'episode_len': 1200,
     },
     'aloha_stack_pot': {
         'task_class': StackPot,

@@ -41,8 +41,8 @@ class GelloEnv:
         self._node.create_subscription(Float64MultiArray, '/left/rexel/pose_states', self.left_pose_command_callback, 10)
         self.action['right_qpos'] = np.zeros(shape=(6,), dtype=np.float64)
         self.action['left_qpos'] = np.zeros(shape=(6,), dtype=np.float64)
-        self.action['right_pose'] = np.zeros(shape=(6,), dtype=np.float64)
-        self.action['left_pose'] = np.zeros(shape=(6,), dtype=np.float64)
+        self.action['right_pose'] = np.zeros(shape=(7,), dtype=np.float64) # xyz quat
+        self.action['left_pose'] = np.zeros(shape=(7,), dtype=np.float64) # xyz quat
         self.action['right_gripper_command'] = np.zeros(shape=(1,), dtype=np.float64)
         self.action['left_gripper_command'] = np.zeros(shape=(1,), dtype=np.float64)
 

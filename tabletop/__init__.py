@@ -31,22 +31,27 @@ def env(task_name, action_space, test=False):
             tree = ET.parse(os.path.join(ALOHA_XML_DIR, 'scene.xml'))
         root = tree.getroot()
         worldbody = root.find('worldbody')
-        if action_method == 'joint':
-            if task.single_arm:
-                ET.SubElement(root, 'include', file=f"joint_position_actuators_{task.single_arm_dir}.xml")
-            else:    
-                ET.SubElement(root, 'include', file="joint_position_actuators.xml")
+        if task.single_arm:
+            ET.SubElement(root, 'include', file=f"joint_position_actuators_{task.single_arm_dir}.xml")
         else:
-            if task.single_arm:
-                if action_space == 'ee_quat_pos':
-                    ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
-                else:
-                    ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
-            else:
-                if action_space == 'ee_quat_pos':
-                    ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
-                else:
-                    ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
+            ET.SubElement(root, 'include', file="joint_position_actuators.xml")
+            
+        # if action_method == 'joint':
+        #     if task.single_arm:
+        #         ET.SubElement(root, 'include', file=f"joint_position_actuators_{task.single_arm_dir}.xml")
+        #     else:    
+        #         ET.SubElement(root, 'include', file="joint_position_actuators.xml")
+        # else:
+        #     if task.single_arm:
+        #         if action_space == 'ee_quat_pos':
+        #             ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
+        #         else:
+        #             ET.SubElement(root, 'include', file=f"filtered_cartesian_actuators_{task.single_arm_dir}.xml")
+        #     else:
+        #         if action_space == 'ee_quat_pos':
+        #             ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
+        #         else:
+        #             ET.SubElement(root, 'include', file="filtered_cartesian_actuators.xml")
 
         for obj in task.obj_dict.values():
             asset, body = obj.generate_xml()

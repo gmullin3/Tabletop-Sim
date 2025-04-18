@@ -93,16 +93,18 @@ class RenderThread(QThread):
             if self.task.single_arm:
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
-                right_rpy = right_pos[3:6]
-                right_quat = rpy_to_quat(*right_pos[3:6])
+                right_quat = right_pos[3:7]
+                # right_quat = rpy_to_quat(*right_pos[3:6])
                 action = np.concatenate([right_xyz, right_quat, 1 - right_grp])
             else:
                 left_pos = self.gello.action['left_pose']
                 left_xyz = left_pos[:3]
-                left_quat = rpy_to_quat(*left_pos[3:6])
+                # left_quat = rpy_to_quat(*left_pos[3:6])
+                left_quat = left_pos[3:7]
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
-                right_quat = rpy_to_quat(*right_pos[3:6])
+                # right_quat = rpy_to_quat(*right_pos[3:6])
+                right_quat = right_pos[3:7]
                 action = np.concatenate([left_xyz, left_quat, 1 - left_grp, right_xyz, right_quat, 1 - right_grp])
         else:
             if self.task.single_arm:
@@ -165,7 +167,7 @@ class RenderThread(QThread):
             data_dict['/observations/images/front'].append(ts.observation['images']['front'])
             data_dict['/observations/images/back'].append(ts.observation['images']['back'])
             if self.task.single_arm:
-                data_dict['/observations/images/wrist'].append(ts.observation['images'][f'wrist_{self.task.single_arm_dir}'])
+                data_dict['/observations/images/wrist'].append(ts.observation['images'][f'wrist'])
             else:
                 data_dict['/observations/images/wrist_right'].append(ts.observation['images']['wrist_right'])
                 data_dict['/observations/images/wrist_left'].append(ts.observation['images']['wrist_left'])
