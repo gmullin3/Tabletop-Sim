@@ -7,12 +7,12 @@ from tabletop.aloha_env_base import AlohaTask
 class DishDrainer(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
-        self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.6, 0.6, 0.6])
-        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], scale=[0.6, 0.6, 0.6], mass=0.2)
+        self.add_object('drainer', 'Rubbermaid_Large_Drainer', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.8, 0.8, 0.8])
+        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], scale=[0.8, 0.8, 0.8], mass=0.2)
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
-        plate_pos = np.array([0.13, 0.0, 0.01])
+        plate_pos = np.array([0.18, -0.15, 0.01])
         plate_pos[:2] += random_vector * 0.01
         plate_rpy = np.array([0, 0, 0],)
         self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)

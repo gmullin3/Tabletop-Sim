@@ -27,26 +27,32 @@
       <default class="waist">
         <joint axis="0 0 1" range="-3.14158 3.14158" damping="5.76"/>
         <position ctrlrange="-3.14158 3.14158" kp="43"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="shoulder">
         <joint range="-1.85005 1.25664" armature="0.395" frictionloss="2.0" damping="20.0" actuatorfrcrange="-144 144"/>
         <position ctrlrange="-1.85005 1.25664" kp="265"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="elbow">
         <joint range="-1.76278 1.6057" armature="0.383" frictionloss="1.15" damping="18.49" actuatorfrcrange="-59 59"/>
         <position ctrlrange="-1.76278 1.6057" kp="227"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="forearm_roll">
         <joint axis="1 0 0" range="-3.14158 3.14158" armature="0.14" damping="6.78" actuatorfrcrange="-22 22"/>
         <position ctrlrange="-3.14158 3.14158" kp="78"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="wrist_angle">
         <joint range="-1.8675 2.23402" armature="0.008" damping="6.28"/>
         <position ctrlrange="-1.8675 2.23402" kp="37"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="wrist_rotate">
         <joint axis="1 0 0" range="-3.14158 3.14158" damping="1.2"/>
         <position ctrlrange="-3.14158 3.14158" kp="10.4"/>
+        <!-- <velocity  forcerange="-87 87"/> -->
       </default>
       <default class="finger">
         <joint type="slide" armature="0.243" damping="40"/>
@@ -96,7 +102,7 @@
     <light mode="targetbodycom" target="right/gripper_link" pos=".5 .7 2.5" cutoff="55"/>
     <camera name="teleoperator_pov" pos="0 -1.354 0.685" xyaxes="1 0 0 0 0.2 .8"/>
     <camera name="collaborator_pov" pos="0 1.5 0.8" xyaxes="-1 0 0 0 -0.2 .8"/>
-
+  
     <body name="right/base_link" childclass="vx300s" pos="0.469 -0.019 0.02" quat="0 0 0 1">
       <inertial pos="-0.0534774 -0.000562575 0.0205961" quat="-0.00292324 0.712517 0.00480387 0.701633" mass="0.969034"
         diaginertia="0.0071633 0.00602451 0.00169819"/>
@@ -184,6 +190,8 @@
         </body>
       </body>
     </body>
+    <site name="left/actuation_center" pos="-0.469 -0.019 0.02" group="5"/>
+    <site name="right/actuation_center" pos="0.469 -0.019 0.02" group="5" xyaxes="-1 0 0 0 -1 0"/>
   </worldbody>
 
   <contact>

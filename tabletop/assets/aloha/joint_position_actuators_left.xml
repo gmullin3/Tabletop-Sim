@@ -16,8 +16,4 @@
     <position class="wrist_rotate" name="right/wrist_rotate" joint="right/wrist_rotate"/>
     <position class="finger" name="right/gripper" joint="right/left_finger"/> -->
   </actuator>
-  <worldbody>
-    <site name="left/actuation_center" pos="-0.469 -0.019 0.02" group="5"/>
-    <!-- <site name="right/actuation_center" pos="0.469 -0.019 0.02" group="5" xyaxes="-1 0 0 0 -1 0"/> -->
-  </worldbody>
 </mujoco>

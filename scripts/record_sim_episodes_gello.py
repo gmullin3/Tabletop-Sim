@@ -21,6 +21,7 @@ from scipy.spatial.transform import Rotation as R
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
     reward_signal = pyqtSignal(np.ndarray)  # Signal to send reward values
+    file_signal = pyqtSignal(str)
 
     def __init__(self, env, physics, height, width, gello, num_episode, save_dir):
         super().__init__()
@@ -41,14 +42,14 @@ class RenderThread(QThread):
 
     def run(self):
         while self.running:
+            if not self.reset_flag:
+                self.save_demo()  
+                self.reset_flag = True
+                self.terminate_signal = False
+            ts = self.env.reset()
+            self.episode = [ts]
+            self.episode_action = []
             while not self.gello.start and self.running:
-                if not self.reset_flag:
-                    self.save_demo()
-                    ts = self.env.reset()
-                    self.episode = [ts]
-                    self.episode_action = []
-                    self.reset_flag = True
-                    self.terminate_signal = False
                 img = self.physics.render(self.height, self.width, camera_id=0)
                 img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
                 self.image_signal.emit(img)
@@ -57,7 +58,6 @@ class RenderThread(QThread):
             while self.gello.start and self.running:
                 start_time = time.time()
                 action = self.process_action()
-                # print(action)
                 self.episode_action.append(action)
 
                 ts = self.env.step(action)
@@ -65,6 +65,14 @@ class RenderThread(QThread):
 
                 # RENDER
                 img = self.physics.render(self.height, self.width, camera_id=0)
+                if self.task.single_arm:
+                    wrist_img = self.physics.render(240, 320, camera_id=f'wrist_cam_{self.task.single_arm_dir}')
+                    img[-240:, -320:] = wrist_img
+                else:
+                    wrist_r = self.physics.render(240, 320, camera_id=f'wrist_cam_right')
+                    wrist_l = self.physics.render(240, 320, camera_id=f'wrist_cam_left')
+                    img[-240:, -320:] = wrist_r
+                    img[-240:, :320] = wrist_l
                 img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
                 self.image_signal.emit(img)
 
@@ -75,7 +83,7 @@ class RenderThread(QThread):
                 if ts.step_type == dm_env.StepType.LAST:
                     self.gello.start = False
                     self.terminate_signal = True
-                    self.terminate_signal = False
+                    # self.terminate_signal = False
                 ##
 
                 ## Deal with latency
@@ -157,7 +165,6 @@ class RenderThread(QThread):
         max_timesteps = len(self.episode_action)
         for i in range(max_timesteps):
             ts = self.episode.pop(0)
-            print(ts.observation.keys())
             action = self.episode_action.pop(0)
             data_dict['/observations/state/qpos'].append(ts.observation['qpos'])
             data_dict['/observations/state/qvel'].append(ts.observation['qvel'])
@@ -196,10 +203,11 @@ class RenderThread(QThread):
             action = root.create_dataset('action', (max_timesteps, data_dict['/action'][0].shape[0]))
 
             for name, array in data_dict.items():
-                # print(name)
                 root[name][...] = array
         print(f'Saved {dataset_path}')
-        num += 1
+        self.file_signal.emit(dataset_path)
+        
+        self.episode_count += 1
 
     def stop(self):
         self.running = False
@@ -236,6 +244,7 @@ class SimulationUI(QWidget):
         )
         self.render_thread.image_signal.connect(self.display_image)
         self.render_thread.reward_signal.connect(self.set_current_reward)
+        self.render_thread.file_signal.connect(self.set_current_file)
         self.render_thread.start()
 
     def initUI(self):
@@ -251,10 +260,16 @@ class SimulationUI(QWidget):
         self.text_label = QLabel("Reward", self)
         self.text_label.setAlignment(Qt.AlignCenter)
         self.text_label.setFont(QFont("Arial", 40, QFont.Bold))
-        self.text_label.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 150);")  # Semi-transparent background
+        self.text_label.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 255);")  # Semi-transparent background
         self.text_label.setGeometry(0, 0, self.width, 80)  # Position at the top
+        self.text_label_file = QLabel("FileName", self)
+        self.text_label_file.setAlignment(Qt.AlignCenter)
+        self.text_label_file.setFont(QFont("Arial", 40, QFont.Bold))
+        self.text_label_file.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 255);")  # Semi-transparent background
+        self.text_label_file.setGeometry(0, 80, self.width, 80)  # Position at the top
 
         self.layout.addWidget(self.text_label)
+        self.layout.addWidget(self.text_label_file)
         self.layout.addWidget(self.image_label, stretch=3)  # Give it more space
         self.setLayout(self.layout)
 
@@ -273,6 +288,9 @@ class SimulationUI(QWidget):
     def set_current_reward(self, rewards):
         """ Updates the file name label. """
         self.text_label.setText(f"Reward : {rewards[0]} / {rewards[1]}")
+
+    def set_current_file(self, filename):
+        self.text_label_file.setText(filename)
     
 
 if __name__ == '__main__':

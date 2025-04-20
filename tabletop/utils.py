@@ -66,3 +66,43 @@ def detach_dict(d):
 def set_seed(seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
+
+import cv2
+import numpy as np
+import os
+
+def save_images_to_video(image_list, output_video_path, fps=20):
+    """
+    Saves a list of NumPy arrays (representing images) into a video file.
+
+    Args:
+        image_list (list of np.ndarray): A list where each element is a NumPy
+                                         array representing an image frame
+                                         (e.g., shape (height, width, 3) for color).
+        output_video_path (str): Path to save the output video file (e.g., 'output.mp4').
+        fps (int): Frames per second for the output video.
+    """
+    if not image_list:
+        print("Error: Empty list of images provided.")
+        return
+
+    # Get the dimensions of the first frame
+    first_frame = image_list[0]
+    height, width, channels = first_frame.shape
+
+    # Define the codec and create a VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # You can change the codec
+    out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    print(f"Saving video to: {output_video_path} at {fps} FPS...")
+
+    for frame in image_list:
+        if frame is None or not isinstance(frame, np.ndarray) or frame.shape != (height, width, channels):
+            print("Warning: Skipping invalid frame in the image list.")
+            continue
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        out.write(frame)
+
+    # Release the VideoWriter object
+    out.release()
+    print("Video saved successfully!")
