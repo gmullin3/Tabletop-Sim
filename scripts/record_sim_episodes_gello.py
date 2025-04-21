@@ -6,15 +6,15 @@ import argparse
 import h5py
 
 from gello_ros import GelloEnv
-import tabletop
 from tabletop.constants import *
+import tabletop
 from tabletop.utils import *
 import dm_env
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QGridLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage, QFont
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
@@ -58,7 +58,8 @@ class RenderThread(QThread):
                 action = self.process_action()
                 self.episode_action.append(action)
 
-                ts = self.env.step(action)
+
+                ts = self.env.step(action[0])
                 self.reward_signal.emit(np.array([ts.reward, self.env.task.max_reward]))  # Send reward to UI
 
                 # RENDER
@@ -197,7 +198,7 @@ class RenderThread(QThread):
         with h5py.File(dataset_path, 'w', rdcc_nbytes=1024 ** 2 * 2) as root:
             obs = root.create_group('observations')
             state = obs.create_group('states')
-            action = root.create_group('action')
+            action = root.create_group('actions')
 
             qpos = state.create_dataset('qpos', (max_timesteps, 7 if self.task.single_arm else 14))
             qvel = state.create_dataset('qvel', (max_timesteps, 7 if self.task.single_arm else 14))
@@ -216,10 +217,10 @@ class RenderThread(QThread):
                 image_wrist_left = image.create_dataset('wrist_left', (max_timesteps, 240, 320, 3), dtype='uint8', chunks=(1, 240, 320, 3), )
 
             if self.task.action_space == 'joint_pos':
-                action_joint_pos = action.create_dataset('joint_pos', (max_timesteps, data_dict['/action/joint_pos'][0].shape[0]))
+                action_joint_pos = action.create_dataset('joint_pos', (max_timesteps, data_dict['/actions/joint_pos'][0].shape[0]))
             else:
-                action_ee_quat_pos = action.create_dataset('ee_quat_pos', (max_timesteps, data_dict['/action/ee_quat_pos'][0].shape[0]))
-                action_ee_6d_pos = action.create_dataset('ee_6d_pos', (max_timesteps, data_dict['/action/ee_6d_pos'][0].shape[0]))
+                action_ee_quat_pos = action.create_dataset('ee_quat_pos', (max_timesteps, data_dict['/actions/ee_quat_pos'][0].shape[0]))
+                action_ee_6d_pos = action.create_dataset('ee_6d_pos', (max_timesteps, data_dict['/actions/ee_6d_pos'][0].shape[0]))
 
             for name, array in data_dict.items():
                 root[name][...] = array

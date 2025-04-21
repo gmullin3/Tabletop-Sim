@@ -10,9 +10,9 @@ from tabletop.utils import save_images_to_video
 def replay(task_name, action_type, episode_dir, num_episode, save_dir):
     env = tabletop.env(task_name, action_type)
 
-    episode = h5py.File(f'{episode_dir}/episode_{num_episode}.hdf5', 'r')
-    init_state = episode['/observations/state/env_state'][0]
-    actions = episode['/action']
+    episode = h5py.File(f'{episode_dir}/{task_name}/episode_{num_episode}.hdf5', 'r')
+    init_state = episode['/observations/states/env_state'][0]
+    actions = episode[f'/actions/{action_type}']
     
     ts = env.reset()
     # init states
@@ -28,11 +28,11 @@ def replay(task_name, action_type, episode_dir, num_episode, save_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--task_name', action='store', type=str, default='aloha_upright_mug', required=False)
-    parser.add_argument('-a', '--action_type', action='store', type=str, default='ee_quat_pos', required=False)
-    parser.add_argument('-d', '--episode_dir', action='store', type=str, default='')
-    parser.add_argument('-n', '--num_episode', action='store', type=int, default=1)
-    parser.add_argument('-s', '--save_dir', action='store', type=str, default='replays')
+    parser.add_argument('-t', '--task_name', action='store', type=str, default='aloha_dish_drainer', required=False)
+    parser.add_argument('-a', '--action_type', action='store', type=str, default='ee_6d_pos', required=False)
+    parser.add_argument('-d', '--episode_dir', action='store', type=str, default='datasets')
+    parser.add_argument('-n', '--num_episode', action='store', type=int, default=0)
+    parser.add_argument('-s', '--save_dir', action='store', type=str, default='.')
     
     args = parser.parse_args()
 
