@@ -31,6 +31,61 @@ class DishDrainer(AlohaTask):
     def get_instruction(self, reward):
         return 'Pick up the dish and put on to the drainer'
     
+class PutHat(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.add_object('cabinet', 'Threshold_Basket_Natural_Finish_Fabric_Liner_Small', pos=[-0.1, 0.1, 0.01], scale=[1.5, 1.5, 1.2])
+        self.add_object('dog', 'Dog', pos=[0.1, 0, 0.01], scale=[0.8, 0.8, 0.8], mass=0.2)
+        self.add_object('hat', 'DPC_tropical_Trends_Hat', pos=[0.1, 0, 0.01], scale=[0.45, 0.45, 0.45], mass=0.1)
+
+    def initialize_episode(self, physics):
+        # Position for the cabinet
+        cabinet_pos = np.array([0.0, 0.0, 0.01])
+        cabinet_pos[0] = np.random.uniform(-0.1, 0.1)  # x-axis between -0.1 and 0.1
+        
+        # For y-axis, choose either [-0.2, -0.18] or [0.18, 0.2]
+        if np.random.random() < 0.5:
+            cabinet_pos[1] = np.random.uniform(-0.2, -0.18)
+        else:
+            cabinet_pos[1] = np.random.uniform(0.18, 0.2)
+            
+        self.set_object_pose(physics, 'cabinet', pos=cabinet_pos, rpy=np.array([0, 0, 0]))
+        
+        # Get cabinet position for reference
+        cabinet_pos, _ = self.get_object_pose(physics, 'cabinet')
+        
+        # Place dog on top of the cabinet
+        dog_pos = np.array([cabinet_pos[0], cabinet_pos[1], 0.15])  # Slightly above the cabinet
+        dog_pos[:2] += np.random.uniform(-0.05, 0.05, size=2)  # Small deviation but still on cabinet
+        dog_pos[2] += 0.1
+        self.set_object_pose(physics, 'dog', pos=dog_pos, rpy=np.random.uniform(-np.pi, np.pi, 3))
+        
+        # Place hat outside the cabinet
+        while True:
+            hat_pos = np.array([0.0, 0.0, 0.05])
+            hat_pos[:2] = np.random.uniform(-0.25, 0.25, size=2)
+            hat_pos[2] = 0.2
+            
+            # Check if hat is far enough from cabinet center
+            if np.linalg.norm(hat_pos[:2] - cabinet_pos[:2]) > 0.15:  # Assuming cabinet radius is about 0.15
+                break
+        
+        self.set_object_pose(physics, 'hat', pos=hat_pos, rpy=np.random.uniform(-np.pi, np.pi, 3))
+        
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        dog_pos, _ = self.get_object_pose(physics, 'dog')
+        hat_pos, _ = self.get_object_pose(physics, 'hat')
+        reward_condition_list = [
+            [self.get_pos_condition(physics, hat_pos, dog_pos, 0.05), 10],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+    def get_instruction(self, reward):
+        return 'Put all honey dippers in the turtle-shaped holder'
+
 
 #####Single Arm Tasks##############################
 class UprightMug(AlohaTask):
@@ -143,5 +198,9 @@ ALOHA_TASK_CONFIGS = {
     'aloha_stack_pot': {
         'task_class': StackPot,
         'episode_len': 600,
-    }
+    },
+    'aloha_put_hat': {
+        'task_class': PutHat,
+        'episode_len': 600,
+    },
 }
