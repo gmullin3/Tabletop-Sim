@@ -1,15 +1,10 @@
 import numpy as np
 import collections
-import os
-import random
 from tabletop.constants import *
-from tabletop.wrappers import *
-from tabletop.utils import sample_box_pose, sample_insertion_pose
+from tabletop.utils import *
+from tabletop.wrappers import GSOWrapper
 from tabletop.aloha_ik import AlohaIK
-from dm_control import mujoco
-from dm_control.rl import control
 from dm_control.suite import base
-from pyquaternion import Quaternion
 from scipy.spatial.transform import Rotation
 
 class AlohaTask(base.Task):
@@ -74,8 +69,6 @@ class AlohaTask(base.Task):
                     curr_qpos=self.get_qpos(physics)[7:13],
                     curr_qvel=self.get_qvel(physics)[7:13]
                 )
-                # qpos_left = self.aloha_ik.get_joint_pos(action[0:3], action[3:7])
-                # qpos_right = self.aloha_ik.get_joint_pos(action[8:11], action[11:-1])
                 np.copyto(physics.data.ctrl, np.concatenate([qpos_left, [g_left_ctrl], qpos_right, [g_right_ctrl]]))
             else:
                 g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[6])
@@ -114,13 +107,11 @@ class AlohaTask(base.Task):
         reference_site_name = physics.model.site(reference_site).id
         pos_ref = physics.data.site_xpos[reference_site_name].copy()
         rot_ref = physics.data.site_xmat[reference_site_name].copy().reshape(3, 3)
-        # rot_ref = R.from_quat(quat_ref).as_matrix()
         rot_ref_inv = rot_ref.T
 
         # Get world pose of the target site
         pos_target = physics.data.site_xpos[target_site_name].copy()
         rot_target = physics.data.site_xmat[target_site_name].copy().reshape(3, 3)
-        # rot_target = R.from_quat(quat_target).as_matrix()
 
         # Calculate relative position
         translation_world = pos_target - pos_ref

@@ -1,7 +1,8 @@
 import numpy as np
 import random
 from tabletop.constants import *
-from tabletop.wrappers import *
+from tabletop.utils import *
+from tabletop.wrappers import GSOWrapper
 from tabletop.aloha_env_base import AlohaTask
 
 class DishDrainer(AlohaTask):

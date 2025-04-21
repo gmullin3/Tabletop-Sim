@@ -8,5 +8,4 @@ matplotlib
 einops
 packaging
 h5py
-ipython
 tensorflow-datasets

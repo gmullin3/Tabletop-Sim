@@ -1,52 +1,29 @@
-import numpy as np
 import torch
-import os
+import numpy as np
+import cv2
+from scipy.spatial.transform import Rotation
 
-import IPython
-e = IPython.embed
+def quat_to_rpy(w, x, y, z, mode='abs'):
+    try:
+        r = Rotation.from_quat([w, x, y, z], scalar_first=True)
+    except:
+        return np.array([0.0, 0.0, 0.0])
+    return np.array(r.as_euler('zyx', degrees=False))
 
+def rpy_to_quat(roll, pitch, yaw):
+    try:
+        r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=False)
+    except:
+        return np.array([0.0, 0.0, 0.0, 0.0])
+    return np.array(r.as_quat(scalar_first=True))
 
+def mat_to_rpy(mat):
+    return Rotation.from_matrix(mat).as_euler('zyx', degrees=False)
 
-### env utils
-
-def sample_box_pose():
-    x_range = [-0.2, 0.2]
-    y_range = [0.3, 0.7]
-    z_range = [0.1, 0.1]
-
-    ranges = np.vstack([x_range, y_range, z_range])
-    cube_position = np.random.uniform(ranges[:, 0], ranges[:, 1])
-
-    cube_quat = np.array([1, 0, 0, 0])
-    return np.concatenate([cube_position, cube_quat])
-
-def sample_insertion_pose():
-    # Peg
-    x_range = [0.1, 0.2]
-    y_range = [0.4, 0.6]
-    z_range = [0.05, 0.05]
-
-    ranges = np.vstack([x_range, y_range, z_range])
-    peg_position = np.random.uniform(ranges[:, 0], ranges[:, 1])
-
-    peg_quat = np.array([1, 0, 0, 0])
-    peg_pose = np.concatenate([peg_position, peg_quat])
-
-    # Socket
-    x_range = [-0.2, -0.1]
-    y_range = [0.4, 0.6]
-    z_range = [0.05, 0.05]
-
-    ranges = np.vstack([x_range, y_range, z_range])
-    socket_position = np.random.uniform(ranges[:, 0], ranges[:, 1])
-
-    socket_quat = np.array([1, 0, 0, 0])
-    socket_pose = np.concatenate([socket_position, socket_quat])
-
-    return peg_pose, socket_pose
+def mat_to_quat(mat):
+    return Rotation.from_matrix(mat).as_quat()
 
 ### helper functions
-
 def compute_dict_mean(epoch_dicts):
     result = {k: None for k in epoch_dicts[0]}
     num_items = len(epoch_dicts)
@@ -66,10 +43,6 @@ def detach_dict(d):
 def set_seed(seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
-
-import cv2
-import numpy as np
-import os
 
 def save_images_to_video(image_list, output_video_path, fps=20):
     """
