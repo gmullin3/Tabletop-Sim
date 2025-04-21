@@ -7,6 +7,8 @@ from dm_control import mujoco
 from dm_control.rl import control
 
 def env(task_name, action_space, test=False):
+    assert action_space in ['joint_pos', 'ee_quat_pos', 'ee_6d_pos'], f'Invalid action space {action_space}'
+    
     ## LOAD XML, ADD Control method, ADD objects
     task = ALOHA_TASK_CONFIGS[task_name]['task_class']()
     if task.single_arm:

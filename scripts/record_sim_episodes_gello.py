@@ -1,22 +1,20 @@
-# import cv2
 import sys
 import os
+import time
 import numpy as np
 import argparse
 import h5py
+
 from gello_ros import GelloEnv
-from tabletop.constants import *
 import tabletop
-from tabletop.wrappers import quat_to_rpy, rpy_to_quat
-from pyquaternion import Quaternion
+from tabletop.constants import *
+from tabletop.utils import *
 import dm_env
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout
+
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage, QFont
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-import time
-import rclpy
-from scipy.spatial.transform import Rotation as R
+from PyQt5.QtCore import QThread, pyqtSignal
 
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
@@ -83,8 +81,6 @@ class RenderThread(QThread):
                 if ts.step_type == dm_env.StepType.LAST:
                     self.gello.start = False
                     self.terminate_signal = True
-                    # self.terminate_signal = False
-                ##
 
                 ## Deal with latency
                 delta_time=  time.time() - start_time
@@ -102,18 +98,21 @@ class RenderThread(QThread):
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
                 right_quat = right_pos[3:7]
-                # right_quat = rpy_to_quat(*right_pos[3:6])
-                action = np.concatenate([right_xyz, right_quat, 1 - right_grp])
+                action_ee_quat = np.concatenate([right_xyz, right_quat, 1 - right_grp])
+                right_6d = quat_to_6d(*right_quat)
+                action_ee_6d = np.concatenate([right_xyz, right_6d, 1 - right_grp])
             else:
                 left_pos = self.gello.action['left_pose']
                 left_xyz = left_pos[:3]
-                # left_quat = rpy_to_quat(*left_pos[3:6])
                 left_quat = left_pos[3:7]
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
-                # right_quat = rpy_to_quat(*right_pos[3:6])
                 right_quat = right_pos[3:7]
-                action = np.concatenate([left_xyz, left_quat, 1 - left_grp, right_xyz, right_quat, 1 - right_grp])
+                action_ee_quat = np.concatenate([left_xyz, left_quat, 1 - left_grp, right_xyz, right_quat, 1 - right_grp])
+                left_6d = quat_to_6d(*left_quat)
+                right_6d = quat_to_6d(*right_quat)
+                action_ee_6d = np.concatenate([left_xyz, left_6d, 1 - left_grp, right_xyz, right_6d, 1 - right_grp])
+            return action_ee_quat, action_ee_6d
         else:
             if self.task.single_arm:
                 right_joint = self.gello.action['right_qpos']
@@ -122,7 +121,7 @@ class RenderThread(QThread):
                 right_joint[0] = right_joint[0] - np.pi / 2
                 right_joint[1] = right_joint[1] - np.pi / 2
                 right_joint[2] = right_joint[2] + np.pi / 2
-                action = np.concatenate([right_joint, 1 - right_grp])
+                action_joint_pos = np.concatenate([right_joint, 1 - right_grp])
             else:
                 # Joint control
                 left_joint = self.gello.action['left_qpos']
@@ -137,8 +136,8 @@ class RenderThread(QThread):
                 right_joint[1] = right_joint[1] - np.pi / 2
                 left_joint[2] = left_joint[2] + np.pi / 2
                 right_joint[2] = right_joint[2] + np.pi / 2
-                action = np.concatenate([left_joint, 1 - left_grp, right_joint, 1 - right_grp])
-        return action
+                action_joint_pos = np.concatenate([left_joint, 1 - left_grp, right_joint, 1 - right_grp])
+            return action_joint_pos, _
 
     def save_demo(self):
         if self.terminate_signal:
@@ -146,16 +145,22 @@ class RenderThread(QThread):
             return
         num = self.episode_count
         data_dict = {
-            '/observations/state/qpos': [],
-            '/observations/state/qvel': [],
-            '/observations/state/ee_pos': [],
-            '/observations/state/ee_rpy_pos': [],
-            '/observations/state/language_instruction': [],
-            '/observations/state/env_state': [],
+            '/observations/states/qpos': [],
+            '/observations/states/qvel': [],
+            '/observations/states/ee_pos': [],
+            '/observations/states/ee_rpy_pos': [],
+            '/observations/states/ee_6d_pos': [],
+            '/observations/states/language_instruction': [],
+            '/observations/states/env_state': [],
             '/observations/images/front': [],
             '/observations/images/back': [],
-            '/action' : [],
         }
+        if self.task.action_space == 'joint_pos':
+            data_dict['/actions/joint_pos'] = []
+        else:
+            data_dict['/actions/ee_quat_pos'] = []
+            data_dict['/actions/ee_6d_pos'] = []
+
         if self.task.single_arm:
             data_dict[f'/observations/images/wrist'] = []
         else:
@@ -165,12 +170,13 @@ class RenderThread(QThread):
         max_timesteps = len(self.episode_action)
         for i in range(max_timesteps):
             ts = self.episode.pop(0)
-            action = self.episode_action.pop(0)
-            data_dict['/observations/state/qpos'].append(ts.observation['qpos'])
-            data_dict['/observations/state/qvel'].append(ts.observation['qvel'])
-            data_dict['/observations/state/env_state'].append(ts.observation['env_state'])
-            data_dict['/observations/state/ee_pos'].append(ts.observation['ee_pos'])
-            data_dict['/observations/state/ee_rpy_pos'].append(ts.observation['ee_rpy_pos'])
+            action1, action2 = self.episode_action.pop(0)
+            data_dict['/observations/states/qpos'].append(ts.observation['qpos'])
+            data_dict['/observations/states/qvel'].append(ts.observation['qvel'])
+            data_dict['/observations/states/env_state'].append(ts.observation['env_state'])
+            data_dict['/observations/states/ee_pos'].append(ts.observation['ee_pos'])
+            data_dict['/observations/states/ee_rpy_pos'].append(ts.observation['ee_rpy_pos'])
+            data_dict['/observations/states/ee_6d_pos'].append(ts.observation['ee_6d_pos'])
             data_dict['/observations/images/front'].append(ts.observation['images']['front'])
             data_dict['/observations/images/back'].append(ts.observation['images']['back'])
             if self.task.single_arm:
@@ -178,19 +184,27 @@ class RenderThread(QThread):
             else:
                 data_dict['/observations/images/wrist_right'].append(ts.observation['images']['wrist_right'])
                 data_dict['/observations/images/wrist_left'].append(ts.observation['images']['wrist_left'])
-            data_dict['/observations/state/language_instruction'].append(ts.observation['language_instruction'])
-            data_dict['/action'].append(action)
+            data_dict['/observations/states/language_instruction'].append(ts.observation['language_instruction'])
+
+            if self.task.action_space == 'joint_pos':
+                data_dict['/actions/joint_pos'].append(action1)
+            else:
+                data_dict['/actions/ee_quat_pos'].append(action1)
+                data_dict['/actions/ee_6d_pos'].append(action2)    
         
         dataset_path = os.path.join(self.save_dir, f'episode_{num}.hdf5')
   
         with h5py.File(dataset_path, 'w', rdcc_nbytes=1024 ** 2 * 2) as root:
             obs = root.create_group('observations')
-            state = obs.create_group('state')
+            state = obs.create_group('states')
+            action = root.create_group('action')
+
             qpos = state.create_dataset('qpos', (max_timesteps, 7 if self.task.single_arm else 14))
             qvel = state.create_dataset('qvel', (max_timesteps, 7 if self.task.single_arm else 14))
             ee_pos = state.create_dataset('ee_pos', (max_timesteps, 8 if self.task.single_arm else 16))
             ee_rpy_pos = state.create_dataset('ee_rpy_pos', (max_timesteps, 7 if self.task.single_arm else 14))
-            env_state = state.create_dataset('env_state', (max_timesteps, data_dict['/observations/state/env_state'][0].shape[0]))
+            ee_6d_pos = state.create_dataset('ee_6d_pos', (max_timesteps, 10 if self.task.single_arm else 20))
+            env_state = state.create_dataset('env_state', (max_timesteps, data_dict['/observations/states/env_state'][0].shape[0]))
             instructions = state.create_dataset('language_instruction', (max_timesteps,), dtype=h5py.string_dtype(encoding='utf-8'))
             image = obs.create_group('images')
             image_front = image.create_dataset('front', (max_timesteps, 480, 640, 3), dtype='uint8', chunks=(1, 480, 640, 3), )
@@ -200,7 +214,12 @@ class RenderThread(QThread):
             else:
                 image_wrist_right = image.create_dataset('wrist_right', (max_timesteps, 240, 320, 3), dtype='uint8', chunks=(1, 240, 320, 3), )
                 image_wrist_left = image.create_dataset('wrist_left', (max_timesteps, 240, 320, 3), dtype='uint8', chunks=(1, 240, 320, 3), )
-            action = root.create_dataset('action', (max_timesteps, data_dict['/action'][0].shape[0]))
+
+            if self.task.action_space == 'joint_pos':
+                action_joint_pos = action.create_dataset('joint_pos', (max_timesteps, data_dict['/action/joint_pos'][0].shape[0]))
+            else:
+                action_ee_quat_pos = action.create_dataset('ee_quat_pos', (max_timesteps, data_dict['/action/ee_quat_pos'][0].shape[0]))
+                action_ee_6d_pos = action.create_dataset('ee_6d_pos', (max_timesteps, data_dict['/action/ee_6d_pos'][0].shape[0]))
 
             for name, array in data_dict.items():
                 root[name][...] = array

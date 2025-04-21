@@ -36,10 +36,10 @@ class GelloEnv:
         self.action = {} 
 
         ###### ACTION ######
-        self._node.create_subscription(Float64MultiArray, '/right/joint_command', self.right_joint_command_callback, 10) # 10 is the queue size(history depth)
-        self._node.create_subscription(Float64MultiArray, '/left/joint_command', self.left_joint_command_callback, 10)
-        self._node.create_subscription(Float64MultiArray, '/right/rexel/pose_states', self.right_pose_command_callback, 10)
-        self._node.create_subscription(Float64MultiArray, '/left/rexel/pose_states', self.left_pose_command_callback, 10)
+        self._node.create_subscription(Float64MultiArray, '/right/joint_command', self.right_joint_command_callback, 10) # 6dim joint(Unitree Z1) gripper
+        self._node.create_subscription(Float64MultiArray, '/left/joint_command', self.left_joint_command_callback, 10)  # 6dim joint(Unitree Z1) gripper
+        self._node.create_subscription(Float64MultiArray, '/right/rexel/pose_states', self.right_pose_command_callback, 10) # xyz quat gripper
+        self._node.create_subscription(Float64MultiArray, '/left/rexel/pose_states', self.left_pose_command_callback, 10) # xyz quat gripper
         self.action['right_qpos'] = np.zeros(shape=(6,), dtype=np.float64)
         self.action['left_qpos'] = np.zeros(shape=(6,), dtype=np.float64)
         self.action['right_pose'] = np.zeros(shape=(7,), dtype=np.float64) # xyz quat

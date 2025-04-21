@@ -23,6 +23,36 @@ def mat_to_rpy(mat):
 def mat_to_quat(mat):
     return Rotation.from_matrix(mat).as_quat()
 
+def quat_to_6d(w, x, y, z):
+    """
+    Converts a quaternion to a 6D representation.
+
+    Args:
+        w, x, y, z (float): Components of the quaternion.
+
+    Returns:
+        np.ndarray: A 6D representation of the quaternion.
+    """
+    r = Rotation.from_quat([w, x, y, z], scalar_first=True)
+    mat = r.as_matrix()
+    return mat[:, :2].flatten()
+
+def sixd_to_quat(sixd):
+    """
+    Converts a 6D representation back to a quaternion.
+
+    Args:
+        sixd (np.ndarray): A 6D representation of a rotation.
+
+    Returns:
+        np.ndarray: A quaternion [w, x, y, z].
+    """
+    mat = np.zeros((3, 3))
+    mat[:, :2] = sixd.reshape(3, 2)
+    mat[:, 2] = np.cross(mat[:, 0], mat[:, 1])
+    r = Rotation.from_matrix(mat)
+    return r.as_quat(scalar_first=True)
+
 ### helper functions
 def compute_dict_mean(epoch_dicts):
     result = {k: None for k in epoch_dicts[0]}

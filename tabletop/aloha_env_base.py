@@ -37,11 +37,16 @@ class AlohaTask(base.Task):
                 qpos = self.aloha_ik.get_joint_pos(
                     target_pos=action[0:3],
                     target_quat=action[3:7],
-                    joint_vel=self.use_joint_vel_ctrl,
-                    curr_pos=self.get_eepos(physics)[0:3],
-                    curr_quat=self.get_eepos(physics)[3:7],
                     curr_qpos=self.get_qpos(physics)[:-1],
-                    curr_qvel=self.get_qvel(physics)[:-1]
+                )
+                np.copyto(physics.data.ctrl, np.concatenate([qpos, [g_right_ctrl]]))
+            elif self.action_space == 'ee_6d_pos':
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                target_quat = quat_to_6d(*action[3:9])
+                qpos = self.aloha_ik.get_joint_pos(
+                    target_pos=action[0:3],
+                    target_quat=target_quat,
+                    curr_qpos=self.get_qpos(physics)[:-1],
                 )
                 np.copyto(physics.data.ctrl, np.concatenate([qpos, [g_right_ctrl]]))
             else:
@@ -54,20 +59,28 @@ class AlohaTask(base.Task):
                 qpos_left = self.aloha_ik.get_joint_pos(
                     target_pos=action[0:3],
                     target_quat=action[3:7],
-                    joint_vel=self.use_joint_vel_ctrl,
-                    curr_pos=self.get_eepos(physics)[0:3],
-                    curr_quat=self.get_eepos(physics)[3:7],
                     curr_qpos=self.get_qpos(physics)[:6],
-                    curr_qvel=self.get_qvel(physics)[:6]
                 )
                 qpos_right = self.aloha_ik.get_joint_pos(
                     target_pos=action[8:11],
                     target_quat=action[11:-1],
-                    joint_vel=self.use_joint_vel_ctrl,
-                    curr_pos=self.get_eepos(physics)[8:11],
-                    curr_quat=self.get_eepos(physics)[11:-1],
                     curr_qpos=self.get_qpos(physics)[7:13],
-                    curr_qvel=self.get_qvel(physics)[7:13]
+                )
+                np.copyto(physics.data.ctrl, np.concatenate([qpos_left, [g_left_ctrl], qpos_right, [g_right_ctrl]]))
+            elif self.action_space == 'ee_6d_pos':
+                g_left_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[7])
+                g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
+                target_quat_left = quat_to_6d(*action[3:9])
+                target_quat_right = quat_to_6d(*action[13:19])
+                qpos_left = self.aloha_ik.get_joint_pos(
+                    target_pos=action[0:3],
+                    target_quat=target_quat_left,
+                    curr_qpos=self.get_qpos(physics)[:6],
+                )
+                qpos_right = self.aloha_ik.get_joint_pos(
+                    target_pos=action[10:13],
+                    target_quat=target_quat_right,
+                    curr_qpos=self.get_qpos(physics)[7:13],
                 )
                 np.copyto(physics.data.ctrl, np.concatenate([qpos_left, [g_left_ctrl], qpos_right, [g_right_ctrl]]))
             else:
@@ -122,7 +135,6 @@ class AlohaTask(base.Task):
         relative_quaternion = Rotation.from_matrix(relative_rotation).as_quat(scalar_first=False)
 
         return relative_position, relative_quaternion
-
 
     def get_qpos(self, physics):
         qpos_raw = physics.data.qpos.copy()
@@ -221,6 +233,42 @@ class AlohaTask(base.Task):
             left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
             right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
             return np.concatenate([left_ee_pos_raw, left_ee_rpy_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_rpy_raw, right_gripper_qpos])
+        
+    def get_eepos_6d(self, physics):
+        if self.single_arm:
+            ## Fix this to singlearm_dir
+            right_ee_pos_raw, right_ee_quat_raw = self.get_relative_pose(
+                physics,
+                f'{self.single_arm_dir}/gripper',
+                f'{self.single_arm_dir}/actuation_center'
+            )
+            qpos_raw = physics.data.qpos.copy()
+            right_qpos_raw = qpos_raw[:8]
+            right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
+            right_ee_6d_raw = quat_to_6d(*right_ee_quat_raw)
+
+            return np.concatenate([right_ee_pos_raw, right_ee_6d_raw, right_gripper_qpos])
+        else:
+            right_ee_pos_raw, right_ee_quat_raw = self.get_relative_pose(
+                physics,
+                f'right/gripper',
+                f'right/actuation_center'
+            )
+
+            left_ee_pos_raw, left_ee_quat_raw = self.get_relative_pose(
+                physics,
+                f'left/gripper',
+                f'left/actuation_center'
+            )
+            qpos_raw = physics.data.qpos.copy()
+            left_qpos_raw = qpos_raw[:8]
+            right_qpos_raw = qpos_raw[8:16]
+            left_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(left_qpos_raw[6])]
+            right_gripper_qpos = [ALOHA_GRIPPER_NORMALIZE_FN(right_qpos_raw[6])]
+            left_ee_6d_raw = quat_to_6d(*left_ee_quat_raw)
+            right_ee_6d_raw = quat_to_6d(*right_ee_quat_raw)
+
+            return np.concatenate([left_ee_pos_raw, left_ee_6d_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_6d_raw, right_gripper_qpos])
 
     def get_env_state(self, physics):
         return physics.data.qpos.copy()[self.robot_offset:]
@@ -232,6 +280,7 @@ class AlohaTask(base.Task):
         obs['qvel'] = self.get_qvel(physics)
         obs['ee_pos'] = self.get_eepos(physics)
         obs['ee_rpy_pos'] = self.get_eepos_rpy(physics)
+        obs['ee_6d_pos'] = self.get_eepos_6d(physics)
         obs['env_state'] = self.get_env_state(physics)
         obs['images'] = dict()
         obs['images']['back'] = physics.render(height=480, width=640, camera_id='teleoperator_pov')

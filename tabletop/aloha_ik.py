@@ -41,25 +41,24 @@ class AlohaIK:
         self.resetter = _ResetArm(seed=0)
         self.ik_physics = mujoco.Physics.from_xml_path(f'{ALOHA_XML_DIR}/aloha_ik.xml')
 
-    def get_joint_pos(self, target_pos, target_quat, joint_vel=False, curr_pos=None, curr_quat=None, curr_qpos=None, curr_qvel=None):
-        if not joint_vel:
-            count = 0
-            physics2 = self.ik_physics.copy(share_model=True)
-            self.resetter(physics2, curr_qpos)
-            while True:
-                result = ik.qpos_from_site_pose(
-                    physics=physics2,
-                    site_name=_SITE_NAME,
-                    target_pos=target_pos,
-                    target_quat=target_quat,
-                    joint_names=_JOINTS,
-                    tol=_TOL,
-                    max_steps=_MAX_STEPS,
-                    inplace=True,
-                )
-                if result.success:
-                    break
-                elif count < _MAX_RESETS:
-                    self.resetter(physics2)
-                    count += 1
-            return result.qpos[:6]
+    def get_joint_pos(self, target_pos, target_quat, curr_qpos=None):
+        count = 0
+        physics2 = self.ik_physics.copy(share_model=True)
+        self.resetter(physics2, curr_qpos)
+        while True:
+            result = ik.qpos_from_site_pose(
+                physics=physics2,
+                site_name=_SITE_NAME,
+                target_pos=target_pos,
+                target_quat=target_quat,
+                joint_names=_JOINTS,
+                tol=_TOL,
+                max_steps=_MAX_STEPS,
+                inplace=True,
+            )
+            if result.success:
+                break
+            elif count < _MAX_RESETS:
+                self.resetter(physics2)
+                count += 1
+        return result.qpos[:6]
