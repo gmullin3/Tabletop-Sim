@@ -1,71 +1,37 @@
-# Tabletop-SIM: Extended Simulation from ACT for Bimanual BC.
-This repo cloned the implementation of simulation from Original ACT, added more simulation and support 4 types of action space.
+# Tabletop Simulation
+This repo is Aloha based mujoco simulation framework to evaluate bimanual policy in simulation.
 
-### Installation
+## Installation
     pip install -r requirements.txt
     pip install -e .
 
-### Simulated experiments
+## Download datasets
 
-List of sims: 
-1. ``sim_transfer_cube_scripted``
-2. ``sim_insertion_scripted``
-3. ``sim_clean``
-4. ``sim_onearm_clean``
 
-To generate 50 episodes of scripted data, run:
+## Task list
+
+List of simumations: 
+
+### Biamanual Tasks
+1. ``aloha_dish_drainer``
+2. ``aloha_``
+3. ``aloha_``
+
+### Single Arm Tasks
+
+## Make your own Tasks
+
+## Collect Demos
+
+
+## Citation
+
+If you want, you can cite this work with:
+```bibtex
+@misc{im2025tabletop,
+    author = {Hokyun, Im},
+    title = {Tabletop Simulation}
+    howpublished = "\url{https://github.com/jellyho/Tabletop-Sim}",
+    year = {2025}
+}
 ```
-    cd scripts
-    python3 record_sim_episodes.py \
-    --task_name sim_clean \
-    --dataset_dir <data save dir> \
-    --num_episodes 50
-```
-
-or single-arm task, 
-
-```
-    cd scripts
-    python3 record_sim_episodes_onearm.py \
-    --task_name sim_onearm_clean \
-    --dataset_dir <data save dir> \
-    --num_episodes 50
-```
-
-You can add the flag ``--onscreen_render`` to see real-time rendering.
-
-
-To visualize the episode after collection, run
-```
-    cd scripts
-    python3 visualize_episodes.py --dataset_dir <data save dir> --episode_idx 0
-```
-### Simulation in detail
-
-**sim_transfer_cube_scripted**
-
-Tranfer the red cube from right to left.
-
-<video src="https://github.com/user-attachments/assets/81e09238-0f57-4d5e-bc63-4442895a9e0d"></video>
-
-**sim_insertion_scripted**
-
-Insert the peg from right to left.
-
-<video src="https://github.com/user-attachments/assets/d813cf6b-8bba-4a48-8a8f-0785facd1d00"></video>
-
-**sim_clean**
-
-There are 8 objects in total. Order and position of objects are all randomized.
-
-https://github.com/user-attachments/assets/f32b7a60-f768-453a-a839-5d7cdb5d69a4
-
-**sim_onearm_clean**
-
-There are 4 objects in total. Order and posistion of objects are all randomized. Language annotation included.
-
-
-https://github.com/user-attachments/assets/abc465bf-f2c4-44c9-a911-7000d50e5dbc
-
-
-

@@ -31,176 +31,348 @@ class DishDrainer(AlohaTask):
     def get_instruction(self, reward):
         return 'Pick up the dish and put on to the drainer'
     
-class PutHat(AlohaTask):
+class HandoverBox(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
-        self.add_object('cabinet', 'Threshold_Basket_Natural_Finish_Fabric_Liner_Small', pos=[-0.1, 0.1, 0.01], scale=[1.5, 1.5, 1.2])
-        self.add_object('dog', 'Dog', pos=[0.1, 0, 0.01], scale=[0.8, 0.8, 0.8], mass=0.2)
-        self.add_object('hat', 'DPC_tropical_Trends_Hat', pos=[0.1, 0, 0.01], scale=[0.45, 0.45, 0.45], mass=0.1)
+        self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[-0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
+        self.add_object('box', 'Office_Depot_HP_75_Remanufactured_Ink_Cartridge_TriColor', pos=[0.2, -0.2, 0.01], rpy=[0, 0, 180], scale=[1.0, 1.0, 1.0], mass=0.1)
 
     def initialize_episode(self, physics):
-        # Position for the cabinet
-        cabinet_pos = np.array([0.0, 0.0, 0.01])
-        cabinet_pos[0] = np.random.uniform(-0.1, 0.1)  # x-axis between -0.1 and 0.1
-        
-        # For y-axis, choose either [-0.2, -0.18] or [0.18, 0.2]
-        if np.random.random() < 0.5:
-            cabinet_pos[1] = np.random.uniform(-0.2, -0.18)
-        else:
-            cabinet_pos[1] = np.random.uniform(0.18, 0.2)
-            
-        self.set_object_pose(physics, 'cabinet', pos=cabinet_pos, rpy=np.array([0, 0, 0]))
-        
-        # Get cabinet position for reference
-        cabinet_pos, _ = self.get_object_pose(physics, 'cabinet')
-        
-        # Place dog on top of the cabinet
-        dog_pos = np.array([cabinet_pos[0], cabinet_pos[1], 0.15])  # Slightly above the cabinet
-        dog_pos[:2] += np.random.uniform(-0.05, 0.05, size=2)  # Small deviation but still on cabinet
-        dog_pos[2] += 0.1
-        self.set_object_pose(physics, 'dog', pos=dog_pos, rpy=np.random.uniform(-np.pi, np.pi, 3))
-        
-        # Place hat outside the cabinet
-        while True:
-            hat_pos = np.array([0.0, 0.0, 0.05])
-            hat_pos[:2] = np.random.uniform(-0.25, 0.25, size=2)
-            hat_pos[2] = 0.2
-            
-            # Check if hat is far enough from cabinet center
-            if np.linalg.norm(hat_pos[:2] - cabinet_pos[:2]) > 0.15:  # Assuming cabinet radius is about 0.15
-                break
-        
-        self.set_object_pose(physics, 'hat', pos=hat_pos, rpy=np.random.uniform(-np.pi, np.pi, 3))
-        
-        super().initialize_episode(physics) ## always last
-
-    def get_reward(self, physics):
-        ## [condition, counter]
-        dog_pos, _ = self.get_object_pose(physics, 'dog')
-        hat_pos, _ = self.get_object_pose(physics, 'hat')
-        reward_condition_list = [
-            [self.get_pos_condition(physics, hat_pos, dog_pos, 0.05), 10],
-        ]
-        return super().get_reward(physics, reward_condition_list) ### always first
-    
-    def get_instruction(self, reward):
-        return 'Put all honey dippers in the turtle-shaped holder'
-
-
-#####Single Arm Tasks##############################
-class UprightMug(AlohaTask):
-    def __init__(self, random=None):
-        super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
-        self.add_object('mug', 'Threshold_Porcelain_Coffee_Mug_All_Over_Bead_White', pos=[0.3, 0.1, 0.04], rpy=[0, 0, 20], scale=[0.8, 0.8, 0.8], mass=0.15)
-
-    def initialize_episode(self, physics):
-        mug_pos = np.array([0.0, 0.0, 0.04])
-        mug_pos[:2] += np.random.uniform([0.1, -0.3], [0.25, 0.1], size=2)
-        mug_rpy = np.array([90, 0, 0],)
-        mug_rpy[-1] = np.random.uniform(-180, 180, 1)
-        self.set_object_pose(physics, 'mug', pos=mug_pos, rpy=mug_rpy)
-        super().initialize_episode(physics) ## always last
-
-    def get_reward(self, physics):
-        ## [condition, counter]
-        _, quat = self.get_object_pose(physics, 'mug')
-        rpy = quat_to_rpy(*quat)
-        reward_condition_list = [
-            [self.get_touch_condition(physics, 'mug', 'table') and
-              self.get_touch_condition(physics, 'mug', 'right_arm') and
-              self.get_rpy_condtion(physics, rpy, [0, 0, 0], [1, 1, 0]), 10],
-        ]
-        return super().get_reward(physics, reward_condition_list) ### always first
-    
-    def get_instruction(self, reward):
-        return 'Upright the white mug'
-    
-class ToyBasket(AlohaTask):
-    def __init__(self, random=None):
-        super().__init__(random=random, single_arm=True, single_arm_dir='left') ## always first
-        self.add_object('basket', 'Target_Basket_Medium', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6])
-        self.add_object('toy', 'My_First_Wiggle_Crocodile', pos=[-0.2, -0.3, 0.00], rpy=[0, 0, 20], scale=[0.6, 0.6, 0.6], mass=0.15)
-
-    def initialize_episode(self, physics):
-        toy_pos = np.array([0.0, -0.15, 0.0])
-        toy_pos[:2] += np.random.uniform([-0.3, -0.25], [-0.05, -0.05], size=2)
-        toy_rpy = np.array([0, 0, 0],)
-        toy_rpy[-1] = np.random.uniform(-180, 180, 1)
-        self.set_object_pose(physics, 'toy', toy_pos, toy_rpy)
-
-        basket_pos = np.array([0.0, 0.0, 0.0])
-        basket_pos[0] += np.random.uniform(-0.25, -0.15, 1)
+        random_vector = np.random.randn(2)
+        basket_pos = np.array([-0.2, 0.1, 0.01])
+        basket_pos[:2] += random_vector * 0.02
         basket_rpy = np.array([0, 0, 0],)
-        basket_rpy[-1] = np.random.uniform(-180, 180, 1)
-        self.set_object_pose(physics, 'basket', basket_pos, basket_rpy)
+
+        random_vector = np.random.randn(2)
+        box_pos = np.array([0.2, -0.2, 0.01])
+        box_pos[:2] += random_vector * 0.025
+        box_rpy = np.array([0, 0, 0],)
+        random_vector = np.random.randn(1)
+        box_rpy[0] += random_vector * 10
+        self.set_object_pose(physics, 'basket', pos=basket_pos, rpy=basket_rpy)
+        self.set_object_pose(physics, 'box', pos=box_pos, rpy=box_rpy)
         super().initialize_episode(physics) ## always last
 
     def get_reward(self, physics):
         ## [condition, counter]
-        pos_toy, _ = self.get_object_pose(physics, 'toy')
-        pos_basket, _ = self.get_object_pose(physics, 'basket')
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'basket', 'toy') and
-              self.get_pos_condition(physics, pos_toy, pos_basket, 0.05), 10],
+            [self.get_touch_condition(physics, 'right_arm', 'box'), 20],
+            [self.get_touch_condition(physics, 'left_arm', 'box'), 20],
+            [self.get_touch_condition(physics, 'box', 'basket'), 50],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
     
     def get_instruction(self, reward):
-        return 'Pick up the corocodile toy and put into the basket'
+        return 'Handover the obx and place into the pink basket'
     
-class StackPot(AlohaTask):
+class PrepareMeal(AlohaTask):
     def __init__(self, random=None):
-        super().__init__(random=random, single_arm=True, single_arm_dir='right') ## always first
-        self.add_object('pot1', 'Cole_Hardware_Flower_Pot_1025', pos=[0.0, 0.15, 0.00], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4], mass=0.2)
-        self.add_object('pot2', 'Cole_Hardware_Electric_Pot_Assortment_55', pos=[0.0, 0.00, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
-        self.add_object('pot3', 'Cole_Hardware_Electric_Pot_Cabana_55', pos=[0.0, -0.15, 0.00], rpy=[0, 0, 0], scale=[0.6, 0.6, 0.6], mass=0.2)
+        super().__init__(random=random, single_arm=False)
+        self.add_object('pan', 'Chefmate_8_Frypan', pos=[0.13, 0.1, 0.02], scale=[1, 1, 1], rpy=[0, 0, 180], mass=0.3)
+        self.add_object('spatula', 'OXO_Cookie_Spatula', pos=[-0.15, 0.0, 0.02], scale=[1, 1, 1], rpy=[0, 0, 180],mass=0.1)
+        self.add_object('meal', 'SANDWICH_MEAL', pos=[0.05, 0.1, 0.04], scale=[1, 1, 1], mass=0.05)
+        self.add_object('plate', 'Threshold_Salad_Plate_Square_Rim_Porcelain', pos=[0.0, -0.2, 0.01], scale=[0.8, 0.8, 0.8], mass=1)
 
     def initialize_episode(self, physics):
-        pot1_pos = np.array([0.05, -0.15, 0.0])
-        pot2_pos = np.array([0.05, 0.15, 0.0])
-        pot3_pos = np.array([0.05, 0.00, 0.0])
-        pot1_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
-        pot2_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
-        pot3_pos[:2] += np.random.uniform([-0.05, -0.05], [0.05, 0.05], size=2)
-        
-        toy_rpy = np.array([0, 0, 0],)
-        toy_rpy[-1] = np.random.uniform(-180, 180, 1)
-
-        self.set_object_pose(physics, 'pot1', pot1_pos, toy_rpy)
-        self.set_object_pose(physics, 'pot2', pot2_pos, toy_rpy)
-        self.set_object_pose(physics, 'pot3', pot3_pos, toy_rpy)
-        super().initialize_episode(physics) ## always last
+        super().initialize_episode(physics)
 
     def get_reward(self, physics):
-        ## [condition, counter]
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'pot1', 'pot2') and self.get_touch_condition(physics, 'pot2', 'pot3')
-             or self.get_touch_condition(physics, 'pot1', 'pot3') and self.get_touch_condition(physics, 'pot2', 'pot3'), 10],
+            [self.get_touch_condition(physics, 'meal', 'plate'), 100]
         ]
-        return super().get_reward(physics, reward_condition_list) ### always first
-    
-    def get_instruction(self, reward):
-        return 'Stack the pots'
+        return super().get_reward(physics, reward_condition_list)
 
+    def get_instruction(self, reward):
+        return 'Move the sandwitch to the plate'
+
+class LiftLargeBook(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('book', 'Eat_to_Live_The_Amazing_NutrientRich_Program_for_Fast_and_Sustained_Weight_Loss_Revised_Edition_Book', pos=[0.0, 0.0, 0.02], scale=[1.2, 0.9, 0.15], mass=0.6)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'book', pos=[0.0 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        book_pos, _ = self.get_object_pose(physics, 'book')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'book'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'book'), 10],
+            [book_pos[2] > 0.3, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to lift the large book.'
+
+class MoveBookToShelf(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('book', 'Eat_to_Live_The_Amazing_NutrientRich_Program_for_Fast_and_Sustained_Weight_Loss_Revised_Edition_Book', pos=[0.2, -0.2, 0.02], scale=[1.2, 0.9, 0.15], mass=0.6)
+        self.add_object('shelf', 'Threshold_Tray_Rectangle_Porcelain', pos=[-0.2, 0.2, 0.1], scale=[1.5, 0.9, 0.15])
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'book', pos=[0.2 + random_vector[0], -0.2 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        random_vector = np.random.randn(2) * 0.04
+        self.set_object_pose(physics, 'shelf', pos=[-0.2 + random_vector[0], 0.2 + random_vector[1], 0.1], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        book_pos, _ = self.get_object_pose(physics, 'book')
+        shelf_pos, _ = self.get_object_pose(physics, 'shelf')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'book'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'book'), 10],
+            [self.get_pos_condition(physics, book_pos[:2], shelf_pos[:2], delta=0.6) and book_pos[2] > shelf_pos[2] - 0.15 and book_pos[2] < shelf_pos[2] + 0.3, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to pick up the book and place it on the porcelain tray shelf.'
+
+class HoldLargeMug(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('mug', 'BIA_Cordon_Bleu_White_Porcelain_Utensil_Holder_900028', pos=[0.0, 0.0, 0.02], scale=[0.8, 0.8, 1.0], mass=0.4)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'mug', pos=[0.0 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        mug_pos, _ = self.get_object_pose(physics, 'mug')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'mug'), 20],
+            [self.get_touch_condition(physics, 'left_arm', 'mug'), 20],
+            [mug_pos[2] > 0.3, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to lift and hold the large utensil holder.'
+
+class PlaceMugOnTable(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('mug', 'ACE_Coffee_Mug_Kristen_16_oz_cup', pos=[0.3, 0.0, 0.02], scale=[1.0, 1.0, 1.0], mass=0.3)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'mug', pos=[0.3 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        mug_pos, _ = self.get_object_pose(physics, 'mug')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'mug'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'mug'), 10],
+            [mug_pos[2] < 0.1, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to gently place the coffee mug on the table.'
+
+class MoveBowlWithBothHands(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('bowl', 'Bradshaw_International_11642_7_Qt_MP_Plastic_Bowl', pos=[-0.3, 0.0, 0.02], scale=[1.0, 1.0, 1.0], mass=0.25)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bowl', pos=[-0.3 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        bowl_pos, _ = self.get_object_pose(physics, 'bowl')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'bowl'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'bowl'), 10],
+            [self.get_pos_condition(physics, bowl_pos[:2], [0.3, 0.0], delta=0.45), 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to move the plastic bowl to the right side of the table.'
+
+class LiftAndHoldPlate(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.0, -0.2, 0.02], scale=[1.0, 1.0, 1.0], mass=0.35)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'plate', pos=[0.0 + random_vector[0], -0.2 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        plate_pos, _ = self.get_object_pose(physics, 'plate')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'plate'), 20],
+            [self.get_touch_condition(physics, 'left_arm', 'plate'), 20],
+            [plate_pos[2] > 0.25, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to lift the dinner plate and hold it steadily in the air.'
+
+class PlacePlateOnAnotherPlate(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('bottom_plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.0, 0.0, 0.02], scale=[1.0, 1.0, 1.0], mass=0.35)
+        self.add_object('top_plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.3, 0.3, 0.02], scale=[1.0, 1.0, 1.0], mass=0.35)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bottom_plate', pos=[0.0 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'top_plate', pos=[0.3 + random_vector[0], 0.3 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        bottom_plate_pos, _ = self.get_object_pose(physics, 'bottom_plate')
+        top_plate_pos, _ = self.get_object_pose(physics, 'top_plate')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'top_plate'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'top_plate'), 10],
+            [self.get_pos_condition(physics, top_plate_pos[:2], bottom_plate_pos[:2], delta=0.15) and top_plate_pos[2] > bottom_plate_pos[2] + 0.01, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to carefully place the second dinner plate on top of the first one.'
+
+class CarryLargeBottle(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('bottle', 'Nestle_Pure_Life_Exotics_Sparkling_Water_Strawberry_Dragon_Fruit_8_count_12_fl_oz_can', pos=[0.0, 0.0, 0.02], scale=[0.6, 0.6, 1.5], mass=0.7)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bottle', pos=[0.0 + random_vector[0], 0.0 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        bottle_pos, _ = self.get_object_pose(physics, 'bottle')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'bottle'), 20],
+            [self.get_touch_condition(physics, 'left_arm', 'bottle'), 20],
+            [self.get_pos_condition(physics, bottle_pos[:2], [0.3, -0.3], delta=0.45) and bottle_pos[2] > 0.2, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to lift and carry the large sparkling water bottle to the front right.'
+
+class PlaceBottleInHolder(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('bottle', 'Nestle_Pure_Life_Exotics_Sparkling_Water_Strawberry_Dragon_Fruit_8_count_12_fl_oz_can', pos=[0.3, -0.1, 0.02], scale=[0.6, 0.6, 1.5], mass=0.7)
+        self.add_object('holder', 'BIA_Cordon_Bleu_White_Porcelain_Utensil_Holder_900028', pos=[-0.3, 0.1, 0.01], scale=[0.9, 0.9, 1.2])
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bottle', pos=[0.3 + random_vector[0], -0.1 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        random_vector = np.random.randn(2) * 0.04
+        self.set_object_pose(physics, 'holder', pos=[-0.3 + random_vector[0], 0.1 + random_vector[1], 0.01], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        bottle_pos, _ = self.get_object_pose(physics, 'bottle')
+        holder_pos, _ = self.get_object_pose(physics, 'holder')
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'bottle'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'bottle'), 10],
+            [self.get_pos_condition(physics, bottle_pos[:2], holder_pos[:2], delta=0.4) and bottle_pos[2] < holder_pos[2] + 0.8 and bottle_pos[2] > holder_pos[2] - 0.2, 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to place the sparkling water bottle inside the white utensil holder.'
+
+class MoveTwoBowls(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False)
+        self.add_object('bowl1', 'Bradshaw_International_11642_7_Qt_MP_Plastic_Bowl', pos=[0.3, 0.1, 0.02], scale=[0.8, 0.8, 0.8], mass=0.2)
+        self.add_object('bowl2', 'Bradshaw_International_11642_7_Qt_MP_Plastic_Bowl', pos=[-0.3, -0.1, 0.02], scale=[0.8, 0.8, 0.8], mass=0.2)
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bowl1', pos=[0.3 + random_vector[0], 0.1 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        random_vector = np.random.randn(2) * 0.03
+        self.set_object_pose(physics, 'bowl2', pos=[-0.3 + random_vector[0], -0.1 + random_vector[1], 0.02], rpy=[0, 0, 0])
+        super().initialize_episode(physics)
+
+    def get_reward(self, physics):
+        bowl1_pos, _ = self.get_object_pose(physics, 'bowl1')
+        bowl2_pos, _ = self.get_object_pose(physics, 'bowl2')
+        target_pos = np.array([0.0, 0.0, 0.1])
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'right_arm', 'bowl1'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'bowl2'), 10],
+            [self.get_pos_condition(physics, bowl1_pos, target_pos, delta=0.3) and self.get_pos_condition(physics, bowl2_pos, target_pos, delta=0.3), 100],
+        ]
+        return super().get_reward(physics, reward_condition_list)
+
+    def get_instruction(self, reward):
+        return 'Use both arms to move both plastic bowls towards the center of the table.'
+    
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
         'task_class': DishDrainer,
         'episode_len': 1200,
     },
-    'aloha_upright_mug': {
-        'task_class': UprightMug,
-        'episode_len': 600,
-    },
-    'aloha_toy_basket': {
-        'task_class': ToyBasket,
+    'aloha_handover_box': {
+        'task_class':HandoverBox,
         'episode_len': 1200,
     },
-    'aloha_stack_pot': {
-        'task_class': StackPot,
+    'aloha_prepare_meal': {
+        'task_class':PrepareMeal,
+        'episode_len': 1200,
+    },
+    'aloha_lift_large_book': {
+        'task_class': LiftLargeBook,
         'episode_len': 600,
     },
-    'aloha_put_hat': {
-        'task_class': PutHat,
+    'aloha_move_book_to_shelf': {
+        'task_class': MoveBookToShelf,
+        'episode_len': 1200,
+    },
+    'aloha_hold_large_mug': {
+        'task_class': HoldLargeMug,
         'episode_len': 600,
+    },
+    'aloha_place_mug_on_table': {
+        'task_class': PlaceMugOnTable,
+        'episode_len': 600,
+    },
+    'aloha_move_bowl_with_both_hands': {
+        'task_class': MoveBowlWithBothHands,
+        'episode_len': 1200,
+    },
+    'aloha_lift_and_hold_plate': {
+        'task_class': LiftAndHoldPlate,
+        'episode_len': 600,
+    },
+    'aloha_place_plate_on_another_plate': {
+        'task_class': PlacePlateOnAnotherPlate,
+        'episode_len': 1200,
+    },
+    'aloha_carry_large_bottle': {
+        'task_class': CarryLargeBottle,
+        'episode_len': 1200,
+    },
+    'aloha_place_bottle_in_holder': {
+        'task_class': PlaceBottleInHolder,
+        'episode_len': 1200,
+    },
+    'aloha_move_two_bowls': {
+        'task_class': MoveTwoBowls,
+        'episode_len': 1200,
     },
 }
