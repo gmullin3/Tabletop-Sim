@@ -14,7 +14,7 @@ class DishDrainer(AlohaTask):
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
         plate_pos = np.array([0.18, -0.15, 0.01])
-        plate_pos[:2] += random_vector * 0.01
+        plate_pos[:2] += random_vector * 0.03
         plate_rpy = np.array([0, 0, 0],)
         self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)
         super().initialize_episode(physics) ## always last
@@ -34,21 +34,21 @@ class DishDrainer(AlohaTask):
 class HandoverBox(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
-        self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[-0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
-        self.add_object('box', 'Office_Depot_HP_75_Remanufactured_Ink_Cartridge_TriColor', pos=[0.2, -0.2, 0.01], rpy=[0, 0, 180], scale=[1.0, 1.0, 1.0], mass=0.1)
+        self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
+        self.add_object('box', 'Fresca_Peach_Citrus_Sparkling_Flavored_Soda_12_PK', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 90], scale=[0.5, 0.15, 0.5], mass=0.1)
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
-        basket_pos = np.array([-0.2, 0.1, 0.01])
+        basket_pos = np.array([0.2, 0.1, 0.01])
         basket_pos[:2] += random_vector * 0.02
-        basket_rpy = np.array([0, 0, 0],)
+        basket_rpy = np.array([0.0, 0.0, 0.0],)
 
         random_vector = np.random.randn(2)
-        box_pos = np.array([0.2, -0.2, 0.01])
+        box_pos = np.array([-0.2, -0.2, 0.01])
         box_pos[:2] += random_vector * 0.025
-        box_rpy = np.array([0, 0, 0],)
-        random_vector = np.random.randn(1)
-        box_rpy[0] += random_vector * 10
+        box_rpy = np.array([0.0, 0.0, 0.0],)
+        random_vector = np.random.randn(1) / (2 * np.pi)
+        box_rpy[0] += random_vector
         self.set_object_pose(physics, 'basket', pos=basket_pos, rpy=basket_rpy)
         self.set_object_pose(physics, 'box', pos=box_pos, rpy=box_rpy)
         super().initialize_episode(physics) ## always last
@@ -68,12 +68,15 @@ class HandoverBox(AlohaTask):
 class PrepareMeal(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False)
-        self.add_object('pan', 'Chefmate_8_Frypan', pos=[0.13, 0.1, 0.02], scale=[1, 1, 1], rpy=[0, 0, 180], mass=0.3)
-        self.add_object('spatula', 'OXO_Cookie_Spatula', pos=[-0.15, 0.0, 0.02], scale=[1, 1, 1], rpy=[0, 0, 180],mass=0.1)
-        self.add_object('meal', 'SANDWICH_MEAL', pos=[0.05, 0.1, 0.04], scale=[1, 1, 1], mass=0.05)
+        self.add_object('pan', 'Chefmate_8_Frypan', pos=[0.16, 0.1, 0.02], scale=[1, 1, 1], rpy=[0, 0, 120], mass=0.1)
+        self.add_object('spatula', 'OXO_Cookie_Spatula', pos=[-0.18, 0.05, 0.02], scale=[0.8, 0.8, 0.8], rpy=[0, 0, 220],mass=0.1)
+        self.add_object('meal', 'SANDWICH_MEAL', pos=[0.12, 0.05, 0.04], scale=[1, 1, 1], mass=0.01)
         self.add_object('plate', 'Threshold_Salad_Plate_Square_Rim_Porcelain', pos=[0.0, -0.2, 0.01], scale=[0.8, 0.8, 0.8], mass=1)
 
     def initialize_episode(self, physics):
+        plate_pos = np.array([0.0, -0.25, 0.01])
+        plate_pos[:2] += np.random.randn(2) * 0.04
+        self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=[0.0, 0.0, 0.0])
         super().initialize_episode(physics)
 
     def get_reward(self, physics):

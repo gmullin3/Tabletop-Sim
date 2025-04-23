@@ -3,6 +3,9 @@ import numpy as np
 import cv2
 from scipy.spatial.transform import Rotation
 
+def degree_to_radian(x, y, z):
+    return np.array([x / 180 * np.pi, y / 180 * np.pi, z / 180 * np.pi])
+
 def quat_to_rpy(w, x, y, z, mode='abs'):
     try:
         r = Rotation.from_quat([w, x, y, z], scalar_first=True)
@@ -10,9 +13,9 @@ def quat_to_rpy(w, x, y, z, mode='abs'):
         return np.array([0.0, 0.0, 0.0])
     return np.array(r.as_euler('zyx', degrees=False))
 
-def rpy_to_quat(roll, pitch, yaw):
+def rpy_to_quat(roll, pitch, yaw, degrees=False):
     try:
-        r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=False)
+        r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=degrees)
     except:
         return np.array([0.0, 0.0, 0.0, 0.0])
     return np.array(r.as_quat(scalar_first=True))
