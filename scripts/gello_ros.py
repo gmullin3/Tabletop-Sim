@@ -17,7 +17,8 @@ class GelloEnv:
         self.start = False
         logging.set_verbosity(logging.INFO)
         logging.info('Successfully initialized.')
-        self.xyz_scale = np.array([1.0, 1.0, 1])        
+        self.xyz_scale = np.array([1.0, 1.0, 1])
+        self.xyz_offset = np.array([0.0, 0.0, -0.1])
 
     def ros_close(self):
         self.timer_thread.stop()
@@ -70,12 +71,12 @@ class GelloEnv:
 
     def right_pose_command_callback(self, msg):
         action_pose = np.array(msg.data)
-        action_pose[0:3] = action_pose[0:3] * self.xyz_scale
+        action_pose[0:3] = action_pose[0:3] * self.xyz_scale + self.xyz_offset
         self.action['right_pose'] = action_pose
 
     def left_pose_command_callback(self, msg):
         action_pose = np.array(msg.data)
-        action_pose[0:3] = action_pose[0:3] * self.xyz_scale
+        action_pose[0:3] = action_pose[0:3] * self.xyz_scale + self.xyz_offset
         self.action['left_pose'] = action_pose
 
     def done_callback(self, msg):

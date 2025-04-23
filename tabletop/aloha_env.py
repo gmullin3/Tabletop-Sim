@@ -35,7 +35,7 @@ class HandoverBox(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
         self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
-        self.add_object('box', 'Fresca_Peach_Citrus_Sparkling_Flavored_Soda_12_PK', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 90], scale=[0.5, 0.15, 0.5], mass=0.1)
+        self.add_object('box', 'Fresca_Peach_Citrus_Sparkling_Flavored_Soda_12_PK', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 90], scale=[0.4, 0.25, 0.4], mass=0.3)
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
@@ -56,9 +56,9 @@ class HandoverBox(AlohaTask):
     def get_reward(self, physics):
         ## [condition, counter]
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'right_arm', 'box'), 20],
-            [self.get_touch_condition(physics, 'left_arm', 'box'), 20],
-            [self.get_touch_condition(physics, 'box', 'basket'), 50],
+            [self.get_touch_condition(physics, 'right_arm', 'box'), 10],
+            [self.get_touch_condition(physics, 'left_arm', 'box'), 10],
+            [self.get_touch_condition(physics, 'box', 'basket'), 10],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
     
@@ -328,15 +328,15 @@ class MoveTwoBowls(AlohaTask):
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
         'task_class': DishDrainer,
-        'episode_len': 1200,
+        'episode_len': 10,
     },
     'aloha_handover_box': {
         'task_class':HandoverBox,
-        'episode_len': 1200,
+        'episode_len': 10,
     },
     'aloha_prepare_meal': {
         'task_class':PrepareMeal,
-        'episode_len': 1200,
+        'episode_len': 10,
     },
     'aloha_lift_large_book': {
         'task_class': LiftLargeBook,

@@ -37,5 +37,6 @@ def env(task_name, action_space, test=False):
         f.write(output_xml)
     physics = mujoco.Physics.from_xml_path(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'))
     task.action_space = action_space
+    task.time_limit = ALOHA_TASK_CONFIGS[task_name]['episode_len']
     env = env = control.Environment(physics, task, time_limit=task.time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
     return env

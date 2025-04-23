@@ -66,13 +66,13 @@
     <geom class="frame" pos="0.61 -0.383 0.62" quat="0 0 1 -1" mesh="corner_bracket"/>
     <!-- <geom class="frame" pos="-0.43 -0.361 1.02" quat="0 0 0 1" mesh="extrusion_2040_1000"/> -->
     <geom class="frame" pos="-0.61 -0.383 0.62" quat="1 1 1 -1" mesh="corner_bracket"/>
-    <geom class="frame" pos="-0.43 -0.24 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/>
+    <!-- <geom class="frame" pos="-0.43 -0.24 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/> -->
     <geom class="frame" pos="-0.59 -0.066 0.01" quat="0 1 0 -1" mesh="extrusion_150"/>
     <geom class="frame" pos="-0.6 -0.371 0.62" quat="0 0 0 -1" mesh="extrusion_600"/>
     <geom class="frame" pos="0.44 -0.631 0.01" quat="1 0 -1 0" mesh="extrusion_150"/>
     <geom class="frame" pos="0 -0.351 1.03" quat="0 0 1 1" mesh="overhead_mount"/>
     <geom class="frame" pos="-0.43 -0.641 0.01" quat="1 1 -1 1" mesh="extrusion_1000"/>
-    <geom class="frame" pos="0.6 -0.26 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/>
+    <!-- <geom class="frame" pos="0.6 -0.26 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/> -->
     <geom class="frame" pos="0.44 -0.066 0.01" quat="1 0 -1 0" mesh="extrusion_150"/>
     <geom class="frame" pos="-0.44 -0.383 1.04" quat="1 1 1 -1" mesh="corner_bracket"/>
     <geom class="frame" pos="-0.61 0.369 0.01" quat="0 1 0 -1" mesh="extrusion_1220"/>
@@ -82,8 +82,8 @@
     <geom class="frame" pos="-0.42 -0.383 0.62" quat="0 0 -1 1" mesh="corner_bracket"/>
     <geom class="frame" pos="-0.6 -0.641 0.01" quat="0 0 -1 1" mesh="extrusion_1000"/>
     <geom class="frame" pos="0.6 -0.371 0.62" quat="1 0 0 1" mesh="extrusion_600"/>
-    <geom class="frame" pos="0.43 -0.24 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/>
-    <geom class="frame" pos="-0.6 -0.26 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/>
+    <!-- <geom class="frame" pos="0.43 -0.24 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/> -->
+    <!-- <geom class="frame" pos="-0.6 -0.26 0.12" quat="0.923 0.382 0 0" material="metal" mesh="angled_extrusion"/> -->
     <!-- <geom class="frame" pos="0.43 -0.361 1.02" quat="0 0 0 1" mesh="extrusion_2040_1000"/> -->
     <geom class="frame" pos="0 -0.391 -0.01" quat="0 0 0 1" mesh="wormseye_mount"/>
   </worldbody>
