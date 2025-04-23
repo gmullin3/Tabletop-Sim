@@ -8,7 +8,7 @@ import tensorflow_hub as hub
 import h5py
 
 
-class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
+class AlohaDishDrainer(tfds.core.GeneratorBasedBuilder):
     """DatasetBuilder for example dataset."""
 
     VERSION = tfds.core.Version('1.0.0')
@@ -25,45 +25,40 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
             features=tfds.features.FeaturesDict({
                 'steps': tfds.features.Dataset({
                     'observation': tfds.features.FeaturesDict({
-                        'topview_image': tfds.features.Image(
+                        'agentview_image': tfds.features.Image(
                             shape=(480, 640, 3),
                             dtype=np.uint8,
                             encoding_format='png',
                             doc='Main camera RGB observation.',
                         ),
-                        'leftview_image': tfds.features.Image(
-                            shape=(480, 640, 3),
+                        'left_wrist_image': tfds.features.Image(
+                            shape=(240, 320, 3),
                             dtype=np.uint8,
                             encoding_format='png',
                             doc='Main camera RGB observation.',
                         ),
-                        'rightview_image': tfds.features.Image(
-                            shape=(480, 640, 3),
+                        'right_wrist_image': tfds.features.Image(
+                            shape=(240, 320, 3),
                             dtype=np.uint8,
                             encoding_format='png',
                             doc='Main camera RGB observation.',
+                        ),
+                        'state':tfds.features.Tensor(
+                            shape=(20,),
+                            dtype=np.float32,
+                            doc='xyz, 6D, grp',
                         ),
                     }),
                     'action': tfds.features.FeaturesDict({
-                        'ee_pos': tfds.features.Tensor(
-                            shape=(14,),
+                        'ee_6d_pos': tfds.features.Tensor(
+                            shape=(20,),
                             dtype=np.float32,
                             doc='2x robot ee pos',
                         ),
-                        'joint_pos': tfds.features.Tensor(
-                            shape=(14,),
+                        'ee_quat_pos': tfds.features.Tensor(
+                            shape=(16,),
                             dtype=np.float32,
-                            doc='2x robot local joint',
-                        ),
-                        'delta_ee': tfds.features.Tensor(
-                            shape=(14,),
-                            dtype=np.float32,
-                            doc='2x robot ee delta',
-                        ),
-                        'delta_joint': tfds.features.Tensor(
-                            shape=(14,),
-                            dtype=np.float32,
-                            doc='2x robot joint delta',
+                            doc='2x robot ee pos',
                         ),
                     }),
                     'language_instruction': tfds.features.Text(
@@ -80,7 +75,7 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager: tfds.download.DownloadManager):
         """Define data splits."""
         return {
-            'train': self._generate_examples(path='../../datasets/*/*.hdf5'),
+            'train': self._generate_examples(path='/data5/jellyho/tabletop/aloha_dish_drainer/*.hdf5'),
         }
 
     def _generate_examples(self, path) -> Iterator[Tuple[str, Any]]:
@@ -89,31 +84,29 @@ class TabletopBimanual(tfds.core.GeneratorBasedBuilder):
         def _parse_example(hdf5_path):
             # load raw data --> this should change for your dataset
             root = h5py.File(hdf5_path, 'r')
-            length =  root['/actions/ee_pos'].shape[0]
-            nli = root['/observations/instructions']
-            topview_image = root['/observations/images/top']
-            leftview_image = root['/observations/images/left']
-            rightview_image = root['/observations/images/right']
+            length =  root['/actions/ee_6d_pos'].shape[0]
+            nli = root['/observations/states/language_instruction']
+            agentview_image = root['/observations/images/back']
+            leftwrist_image = root['/observations/images/wrist_left']
+            rightwrist_image = root['/observations/images/wrist_right']
+            states = root['/observations/states/ee_6d_pos']
 
-            joint_pos = root['/actions/joint_pos']
-            ee_pos = root['/actions/ee_rpy_pos']
-            delta_joint = root['/actions/joint_vel']
-            delta_ee = root['/actions/ee_rpy_vel']
+            ee_6d_pos = root['/actions/ee_6d_pos']
+            ee_quat_pos = root['/actions/ee_quat_pos']
 
             ####### Important ################
             episode = []
             for i in range(length):
                 episode.append({
                         'observation': {
-                            'topview_image': topview_image[i],
-                            'leftview_image': leftview_image[i],
-                            'rightview_image': rightview_image[i],
+                            'agentview_image': agentview_image[i],
+                            'left_wrist_image': leftwrist_image[i],
+                            'right_wrist_image': rightwrist_image[i],
+                            'state': states[i]
                         },
                         'action': {
-                            'ee_pos': ee_pos[i],
-                            'joint_pos': joint_pos[i],
-                            'delta_ee': delta_ee[i],
-                            'delta_joint': delta_joint[i]
+                            'ee_6d_pos': ee_6d_pos[i],
+                            'ee_quat_pos': ee_quat_pos[i],
                         },
                         'language_instruction': nli[i],
                     })
