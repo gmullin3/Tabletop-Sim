@@ -21,7 +21,6 @@ def replay(task_name, action_type, episode_dir, num_episode, save_dir):
 
     replay_images = []
     for a in actions:
-        print(a[9])
         ts = env.step(a)
         replay_images.append(ts.observation['images']['front'])
     save_images_to_video(replay_images, f'{save_dir}/episode_{num_episode}.mp4')
