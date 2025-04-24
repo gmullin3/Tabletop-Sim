@@ -13,6 +13,7 @@ def replay(task_name, action_type, episode_dir, num_episode, save_dir):
     episode = h5py.File(f'{episode_dir}/{task_name}/episode_{num_episode}.hdf5', 'r')
     init_state = episode['/observations/states/env_state'][0]
     actions = episode[f'/actions/{action_type}']
+    # actions = episode[f'/observations/states/ee_6d_pos']
     
     ts = env.reset()
     # init states
@@ -20,6 +21,7 @@ def replay(task_name, action_type, episode_dir, num_episode, save_dir):
 
     replay_images = []
     for a in actions:
+        print(a[9])
         ts = env.step(a)
         replay_images.append(ts.observation['images']['front'])
     save_images_to_video(replay_images, f'{save_dir}/episode_{num_episode}.mp4')

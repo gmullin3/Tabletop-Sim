@@ -118,22 +118,25 @@ class AlohaTask(base.Task):
     def get_relative_pose(self, physics, target_site, reference_site):
         target_site_name = physics.model.site(target_site).id
         reference_site_name = physics.model.site(reference_site).id
-        pos_ref = physics.data.site_xpos[reference_site_name].copy()
-        rot_ref = physics.data.site_xmat[reference_site_name].copy().reshape(3, 3)
+        pos_ref = physics.named.data.site_xpos[reference_site_name].copy()
+
+        rot_ref = physics.named.data.site_xmat[reference_site_name].copy().reshape(3, 3)
         rot_ref_inv = rot_ref.T
 
         # Get world pose of the target site
-        pos_target = physics.data.site_xpos[target_site_name].copy()
-        rot_target = physics.data.site_xmat[target_site_name].copy().reshape(3, 3)
-
+        pos_target = physics.named.data.site_xpos[target_site_name].copy()
+        rot_target = physics.named.data.site_xmat[target_site_name].copy().reshape(3, 3)
+        
         # Calculate relative position
         translation_world = pos_target - pos_ref
         relative_position = rot_ref_inv @ translation_world
 
         # Calculate relative orientation
         relative_rotation = rot_ref_inv @ rot_target
-        relative_quaternion = Rotation.from_matrix(relative_rotation).as_quat(scalar_first=False)
+        relative_quaternion = Rotation.from_matrix(relative_rotation).as_quat(scalar_first=True)
 
+        # compensate
+        # relative_position -= np.array([0.19, 0, 0])
         return relative_position, relative_quaternion
 
     def get_qpos(self, physics):
@@ -193,6 +196,7 @@ class AlohaTask(base.Task):
                 f'left/gripper',
                 f'left/actuation_center'
             )
+            # print(left_ee_pos_raw, right_ee_pos_raw)
             qpos_raw = physics.data.qpos.copy()
             left_qpos_raw = qpos_raw[:8]
             right_qpos_raw = qpos_raw[8:16]

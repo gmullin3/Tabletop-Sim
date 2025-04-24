@@ -13,8 +13,8 @@ class DishDrainer(AlohaTask):
 
     def initialize_episode(self, physics):
         random_vector = np.random.randn(2)
-        plate_pos = np.array([0.18, -0.15, 0.01])
-        plate_pos[:2] += random_vector * 0.03
+        plate_pos = np.array([0.15, -0.17, 0.01])
+        plate_pos[:2] += random_vector * 0.015
         plate_rpy = np.array([0, 0, 0],)
         self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)
         super().initialize_episode(physics) ## always last
