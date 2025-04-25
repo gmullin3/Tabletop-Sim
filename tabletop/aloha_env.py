@@ -22,9 +22,9 @@ class DishDrainer(AlohaTask):
     def get_reward(self, physics):
         ## [condition, counter]
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'right_arm', 'plate'), 10],
-            [not self.get_touch_condition(physics, 'table', 'plate'), 50],
-            [self.get_touch_condition(physics, 'drainer', 'plate'), 100],
+            [self.get_touch_condition(physics, 'right_arm', 'plate'), 5],
+            [not self.get_touch_condition(physics, 'table', 'plate'), 10],
+            [self.get_touch_condition(physics, 'drainer', 'plate'), 20],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
     
