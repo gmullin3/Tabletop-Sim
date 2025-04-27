@@ -3,7 +3,7 @@ from tabletop.utils import *
 import xml.etree.ElementTree as ET
 
 class GSOWrapper:
-    def __init__(self, name, pos, quat=[1, 0, 0, 0], scale=[1, 1, 1], mass=1.0, id=0):
+    def __init__(self, name, pos, quat=[1, 0, 0, 0], scale=[1, 1, 1], mass=1.0, id=0, inertial=[0, 0, 0]):
         self.name = name
         self.pos = pos
         self.quat = quat
@@ -11,6 +11,7 @@ class GSOWrapper:
         self.mass = mass
         self.gso_dir = f'mujoco_scanned_objects/models/{name}/'
         self.id = id
+        self.inertial = inertial
         
     def generate_xml(self):
         ## ASSET
@@ -24,7 +25,7 @@ class GSOWrapper:
         ## OBJECT
         body = ET.Element("body", name=f"{self.name}_object_{self.id}", pos="{} {} {}".format(*self.pos), quat="{} {} {} {}".format(*self.quat))
         ET.SubElement(body, "joint", name=f"{self.name}_joint_{self.id}", type="free", frictionloss="0.01")
-        ET.SubElement(body, "inertial", pos="0 0 0", mass=str(self.mass), diaginertia="0.002 0.002 0.002")
+        ET.SubElement(body, "inertial", pos=f"{self.inertial[0]} {self.inertial[1]} {self.inertial[2]}", mass=str(self.mass), diaginertia="0.002 0.002 0.002")
         ET.SubElement(body, "geom", material=f"{self.name}_material_0_{self.id}", mesh=f"{self.name}_model_{self.id}", type="mesh", contype="0", conaffinity="0", group="2")
         for i in range(32):
             ET.SubElement(body, "geom", name=f"{self.name}_collision_{i}_{self.id}", mesh=f"{self.name}_collision_{i}_{self.id}", type="mesh", group="3")

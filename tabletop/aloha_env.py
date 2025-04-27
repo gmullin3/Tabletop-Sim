@@ -4,6 +4,7 @@ from tabletop.constants import *
 from tabletop.utils import *
 from tabletop.wrappers import GSOWrapper
 from tabletop.aloha_env_base import AlohaTask
+from scipy.spatial.transform import Rotation as R
 
 class DishDrainer(AlohaTask):
     def __init__(self, random=None):
@@ -101,49 +102,38 @@ class ShoesTable(AlohaTask):
     def get_instruction(self, reward):
         return 'Pick up the black shoes and put them side by side on the purple table'
 
-class LiftBoxBall(AlohaTask):
+class LiftBox(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
-        self.add_object('box', 'Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz', pos=[0.0, 0.0, 0.1], rpy=[0, 0, 0], scale=[3, 3, 3], mass=0.5)
-        self.add_object('ball', 'Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler', pos=[0.0, 0.0, 0.2], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4], mass=0.3)
+        self.add_object('box', 'Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz', pos=[0.0, 0.0, 0.1], rpy=[0, 0, 0], scale=[5, 2, 2], mass=1)
 
     def initialize_episode(self, physics):
         # Generate random position for box within [-1.0, 1.0] range
         box_pos = np.array([
-            np.random.uniform(-0.2, 0.2),  # x-coordinate
-            np.random.uniform(-0.1, 0.27),  # y-coordinate
+            np.random.uniform(-0.1, 0.1),  # x-coordinate
+            np.random.uniform(-0.05, 0.05),  # y-coordinate
             0.02  # z-coordinate (kept at default)
         ])
-        
-        # Generate random position for ball within [-2.5, 2.5] range
-        # Keep generating until it's sufficiently far from the box
-        while True:
-            ball_pos = np.array([
-                np.random.uniform(-0.25, 0.25),  # x-coordinate
-                np.random.uniform(-0.25, min(box_pos[1] + 0.049, 0.25)),  # y-coordinate must be less than box_pos[1] + 0.05
-                0.01  # z-coordinate (kept at default)
-            ])
-            
-            # Check if ball is far enough from box (using Euclidean distance)
-            if np.linalg.norm(ball_pos[:2] - box_pos[:2]) > 0.1:  # Minimum distance threshold
-                break
-        
-        # Set the object poses
-        self.set_object_pose(physics, 'box', pos=box_pos, rpy=[0, 0, 0])
-        self.set_object_pose(physics, 'ball', pos=ball_pos, rpy=[0, 0, 0])
+
+        rotation = np.random.uniform(-np.pi/6.0, np.pi/6.0)
+        self.set_object_pose(physics, 'box', pos=box_pos, rpy=[rotation, 0, 0])
         
         # Always call the parent's initialize_episode at the end
         super().initialize_episode(physics)  # always last
 
     def get_reward(self, physics):
         ## [condition, counter]
+        rotation_rpy = R.from_quat(self.get_object_pose(physics, 'box')[1]).as_euler('xyz')
+        rotation_rpy = list(rotation_rpy)
+        is_box_float = self.get_object_pose(physics, 'box')[0][2] > 0.1
+        is_rotation_okay = abs(rotation_rpy[0]) - 3 <= 0.3 and abs(rotation_rpy[1]) < 0.1 and abs(rotation_rpy[2]) < 0.1
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'box', 'ball') and (self.get_object_pose(physics, 'box')[0][2] > 0.05), 10],
+            [is_box_float and is_rotation_okay, 10],
         ]
         return super().get_reward(physics, reward_condition_list)
     
     def get_instruction(self, reward):
-        return 'Put ball top of the box and lift the box'    
+        return 'Lift the box with the front facing the camera'    
 
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
@@ -158,8 +148,8 @@ ALOHA_TASK_CONFIGS = {
         'task_class': ShoesTable,
         'episode_len': 15,
     },
-    'aloha_lift_box_ball': {
-        'task_class': LiftBoxBall,
+    'aloha_lift_box': {
+        'task_class': LiftBox,
         'episode_len': 15,
     },
 }

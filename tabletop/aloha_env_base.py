@@ -23,10 +23,10 @@ class AlohaTask(base.Task):
         self.use_joint_vel_ctrl = False
         super().__init__(random=random)
 
-    def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0):
+    def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0, inertial=[0, 0, 0]):
         r = Rotation.from_euler('zyx', rpy, degrees=True)
         quat = np.array(r.as_quat())
-        obj = GSOWrapper(name, pos, quat, scale, mass, self.obj_id_counter)        
+        obj = GSOWrapper(name, pos, quat, scale, mass, self.obj_id_counter, inertial=inertial)        
         self.obj_dict[nick] = obj
         self.obj_id_counter += 1
 
