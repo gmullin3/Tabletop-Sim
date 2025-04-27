@@ -101,7 +101,50 @@ class ShoesTable(AlohaTask):
     def get_instruction(self, reward):
         return 'Pick up the black shoes and put them side by side on the purple table'
 
+class LiftBoxBall(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.add_object('box', 'Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz', pos=[0.0, 0.0, 0.1], rpy=[0, 0, 0], scale=[3, 3, 3], mass=0.5)
+        self.add_object('ball', 'Toys_R_Us_Treat_Dispenser_Smart_Puzzle_Foobler', pos=[0.0, 0.0, 0.2], rpy=[0, 0, 0], scale=[0.4, 0.4, 0.4], mass=0.3)
+
+    def initialize_episode(self, physics):
+        # Generate random position for box within [-1.0, 1.0] range
+        box_pos = np.array([
+            np.random.uniform(-0.2, 0.2),  # x-coordinate
+            np.random.uniform(-0.1, 0.27),  # y-coordinate
+            0.02  # z-coordinate (kept at default)
+        ])
+        
+        # Generate random position for ball within [-2.5, 2.5] range
+        # Keep generating until it's sufficiently far from the box
+        while True:
+            ball_pos = np.array([
+                np.random.uniform(-0.25, 0.25),  # x-coordinate
+                np.random.uniform(-0.25, min(box_pos[1] + 0.049, 0.25)),  # y-coordinate must be less than box_pos[1] + 0.05
+                0.01  # z-coordinate (kept at default)
+            ])
+            
+            # Check if ball is far enough from box (using Euclidean distance)
+            if np.linalg.norm(ball_pos[:2] - box_pos[:2]) > 0.1:  # Minimum distance threshold
+                break
+        
+        # Set the object poses
+        self.set_object_pose(physics, 'box', pos=box_pos, rpy=[0, 0, 0])
+        self.set_object_pose(physics, 'ball', pos=ball_pos, rpy=[0, 0, 0])
+        
+        # Always call the parent's initialize_episode at the end
+        super().initialize_episode(physics)  # always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'box', 'ball') and (self.get_object_pose(physics, 'box')[0][2] > 0.05), 10],
+        ]
+        return super().get_reward(physics, reward_condition_list)
     
+    def get_instruction(self, reward):
+        return 'Put ball top of the box and lift the box'    
+
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
         'task_class': DishDrainer,
@@ -113,6 +156,10 @@ ALOHA_TASK_CONFIGS = {
     },
     'aloha_shoes_table': {
         'task_class': ShoesTable,
+        'episode_len': 15,
+    },
+    'aloha_lift_box_ball': {
+        'task_class': LiftBoxBall,
         'episode_len': 15,
     },
 }
