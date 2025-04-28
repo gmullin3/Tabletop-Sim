@@ -95,7 +95,7 @@ class ShoesTable(AlohaTask):
     def get_reward(self, physics):
         ## [condition, counter]
         reward_condition_list = [
-            [self.get_touch_condition(physics, 'shoe_right', 'toy_table'), 20] and [self.get_touch_condition(physics, 'shoe_left', 'toy_table'), 20],
+            [self.get_touch_condition(physics, 'shoe_right', 'toy_table') and self.get_touch_condition(physics, 'shoe_left', 'toy_table'), 20],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
     
