@@ -8,7 +8,7 @@ import tensorflow_hub as hub
 import h5py
 
 
-class AlohaShoesTable(tfds.core.GeneratorBasedBuilder):
+class AlohaLiftBox(tfds.core.GeneratorBasedBuilder):
     """DatasetBuilder for example dataset."""
 
     VERSION = tfds.core.Version('1.0.0')

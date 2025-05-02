@@ -61,4 +61,6 @@ class AlohaIK:
             elif count < _MAX_RESETS:
                 self.resetter(physics2)
                 count += 1
+            else:
+                break
         return result.qpos[:6]
