@@ -126,10 +126,11 @@ class LiftBox(AlohaTask):
         rotation_rpy = R.from_quat(self.get_object_pose(physics, 'box')[1]).as_euler('xyz')
         rotation_rpy = list(rotation_rpy)
         is_box_float = self.get_object_pose(physics, 'box')[0][2] > 0.1
-        is_rotation_okay = abs(rotation_rpy[0]) - 3 <= 0.3 and abs(rotation_rpy[1]) < 0.1 and abs(rotation_rpy[2]) < 0.1
+        is_rotation_okay = abs(abs(rotation_rpy[0]) - np.pi) <= 0.1 and abs(rotation_rpy[1]) < 0.1 and abs(rotation_rpy[2]) < 0.1
         reward_condition_list = [
             [is_box_float and is_rotation_okay, 10],
         ]
+        # print(f"cond1: {abs(abs(rotation_rpy[0]) - np.pi) <= 0.15}\tcond2: {abs(rotation_rpy[1]) < 0.1}\tcond3: {abs(rotation_rpy[2]) < 0.1}")
         return super().get_reward(physics, reward_condition_list)
     
     def get_instruction(self, reward):
