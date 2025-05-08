@@ -6,6 +6,7 @@ from tabletop.wrappers import GSOWrapper
 from tabletop.aloha_ik import AlohaIK
 from dm_control.suite import base
 from scipy.spatial.transform import Rotation
+import dm_env
 
 class AlohaTask(base.Task):
     def __init__(self, random=None, single_arm=False, single_arm_dir=None):
@@ -22,7 +23,20 @@ class AlohaTask(base.Task):
         self.aloha_ik = AlohaIK()
         self.use_joint_vel_ctrl = False
         self.instruction = ''
+        self.benchmark_info = None
         super().__init__(random=random)
+
+    def benchmark_init(self, physics, idx):
+        assert self.benchmark_info is not None, 'Benchmark info is not set'
+        print(f'Initializing benchmark info {self.benchmark_info[idx]}')
+        np.copyto(physics.data.qpos[self.robot_offset:], self.benchmark_info[idx])
+        physics.step()
+        return dm_env.TimeStep(
+            step_type=dm_env.StepType.FIRST,
+            reward=None,
+            discount=None,
+            observation=self.get_observation(physics)
+        )
 
     def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0, inertial=[0, 0, 0]):
         r = Rotation.from_euler('zyx', rpy, degrees=True)

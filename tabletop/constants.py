@@ -7,6 +7,7 @@ DATA_DIR = ''
 DT = 0.04
 
 ALOHA_XML_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/assets/aloha' # note: absolute path
+BENCHMARK_INFO_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/benchmark_info' # note: absolute path
 
 ALOHA_GRIPPER_CLOSE = 0.002
 ALOHA_GRIPPER_OPEN = 0.037

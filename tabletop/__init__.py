@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from dm_control import mujoco
 from dm_control.rl import control
+import numpy as np
 
 def env(task_name, action_space, test=False):
     assert action_space in ['joint_pos', 'ee_quat_pos', 'ee_6d_pos'], f'Invalid action space {action_space}'
@@ -38,5 +39,7 @@ def env(task_name, action_space, test=False):
     physics = mujoco.Physics.from_xml_path(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'))
     task.action_space = action_space
     task.time_limit = ALOHA_TASK_CONFIGS[task_name]['episode_len']
-    env = env = control.Environment(physics, task, time_limit=task.time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
+    if os.path.exists(os.path.join(BENCHMARK_INFO_DIR, f'{task_name}_benchmark_info.npy')):
+        task.benchmark_info = np.load(os.path.join(BENCHMARK_INFO_DIR, f'{task_name}_benchmark_info.npy'), allow_pickle=True)
+    env = control.Environment(physics, task, time_limit=task.time_limit, control_timestep=DT, n_sub_steps=None, flat_observation=False)
     return env
