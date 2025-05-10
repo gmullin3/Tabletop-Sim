@@ -283,7 +283,7 @@ class ShoesTableNew(AlohaTask):
         self.original_task = 'aloha_shoes_table'
         self.add_object('toy_table', '3D_Dollhouse_TablePurple', pos=[0.0, 0.1, 0.01], rpy=[0, 0, -80], scale=[3.0, 4.0, 2.0], mass=10.0)
         self.add_object('shoe_right', 'Womens_Bluefish_2Eye_Boat_Shoe_in_Linen_Natural_Sparkle_Suede_w34KNQ41csH', pos=[0.2, -0.2, 0.01], rpy=[0, 0, 0], scale=[0.65, 0.65, 0.65], mass=0.3)
-        self.add_object('shoe_left', 'Womens_Bluefish_2Eye_Boat_Shoe_in_Linen_Natural_Sparkle_Suede_w34KNQ41csH', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, -90], scale=[0.65, 0.65, 0.65], mass=0.3)
+        self.add_object('shoe_left', 'Womens_Bluefish_2Eye_Boat_Shoe_in_Linen_Natural_Sparkle_Suede_kqi81aojcOR', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 0], scale=[0.65, 0.65, 0.65], mass=0.3)
 
         self.instruction = 'Pick up the brown shoes and put them side by side on the purple table'
 
@@ -302,7 +302,7 @@ class ShoesTableNew(AlohaTask):
         shoe_left_pos = np.array([-0.15, -0.15, 0.01])
         random_vector = np.random.randn(2)
         shoe_left_pos[:2] += random_vector * 0.05
-        shoe_left_rpy = np.array([-90/180.0*np.pi, 0, 0])
+        shoe_left_rpy = np.array([0, 0, 0])
         random_vector = np.random.randn(1)
         shoe_left_rpy[0] += random_vector * (1 / 9) * np.pi
         self.set_object_pose(physics, 'toy_table', tabletop_pos, tabletop_rpy)
