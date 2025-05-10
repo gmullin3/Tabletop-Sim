@@ -29,7 +29,8 @@ class AlohaTask(base.Task):
     def benchmark_init(self, physics, idx):
         assert self.benchmark_info is not None, 'Benchmark info is not set'
         print(f'Initializing benchmark info {self.benchmark_info[idx]}')
-        np.copyto(physics.data.qpos[self.robot_offset:], self.benchmark_info[idx])
+        length = len(self.benchmark_info[idx])
+        np.copyto(physics.data.qpos[self.robot_offset:self.robot_offset+length], self.benchmark_info[idx])
         physics.step()
         return dm_env.TimeStep(
             step_type=dm_env.StepType.FIRST,

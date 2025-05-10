@@ -212,8 +212,12 @@ class DishDrainerNew(AlohaTask):
 class HandoverBoxNew(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
+        self.original_task = 'aloha_handover_box'
         self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
         self.add_object('box', 'Fresca_Peach_Citrus_Sparkling_Flavored_Soda_12_PK', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 90], scale=[0.4, 0.25, 0.4], mass=0.3)
+        self.add_object('toy1', 'Vtech_Stack_Sing_Rings_636_Months', pos=[-0.1, 0.1, 0.01], scale=[0.6, 0.6, 0.6])
+        self.add_object('toy2', 'Vtech_Roll_Learn_Turtle', pos=[-0.2, -0.02, 0.01], scale=[0.4, 0.4, 0.4], rpy=[0, 0, 120])
+        self.add_object('toy3', 'Toysmith_Windem_Up_Flippin_Animals_Dog', pos=[0.2, -0.2, 0.01], scale=[2.5, 2.5, 2.5], rpy=[0, 0, 180])
         self.instruction = 'Handover the box and place into the pink basket'
 
     def initialize_episode(self, physics):
@@ -236,6 +240,80 @@ class HandoverBoxNew(AlohaTask):
         ## [condition, counter]
         reward_condition_list = [
             [self.get_touch_condition(physics, 'box', 'basket'), 20],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+class LiftBoxNew(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.original_task = 'aloha_lift_box' # For benchmark init
+        self.add_object('box', 'Perricone_MD_Hypoallergenic_Firming_Eye_Cream_05_oz', pos=[0.0, 0.0, 0.1], rpy=[0, 0, 0], scale=[5, 2, 2], mass=1)
+
+        self.instruction = 'Lift the box with the front facing the camera'
+
+    def initialize_episode(self, physics):
+        # Generate random position for box within [-1.0, 1.0] range
+        box_pos = np.array([
+            np.random.uniform(-0.1, 0.1),  # x-coordinate
+            np.random.uniform(-0.05, 0.05),  # y-coordinate
+            0.02  # z-coordinate (kept at default)
+        ])
+
+        rotation = np.random.uniform(-np.pi/6.0, np.pi/6.0)
+        self.set_object_pose(physics, 'box', pos=box_pos, rpy=[rotation, 0, 0])
+        
+        # Always call the parent's initialize_episode at the end
+        super().initialize_episode(physics)  # always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        rotation_rpy = R.from_quat(self.get_object_pose(physics, 'box')[1]).as_euler('xyz')
+        rotation_rpy = list(rotation_rpy)
+        is_box_float = self.get_object_pose(physics, 'box')[0][2] > 0.1
+        is_rotation_okay = abs(abs(rotation_rpy[0]) - np.pi) <= 0.15  and abs(rotation_rpy[1]) < 0.1 and abs(rotation_rpy[2]) < 0.1
+        reward_condition_list = [
+            [is_box_float and is_rotation_okay, 10],
+        ]
+        # print(f"cond1: {abs(abs(rotation_rpy[0]) - np.pi) <= 0.15}\tcond2: {abs(rotation_rpy[1]) < 0.1}\tcond3: {abs(rotation_rpy[2]) < 0.1}")
+        return super().get_reward(physics, reward_condition_list)
+    
+class ShoesTableNew(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.original_task = 'aloha_shoes_table'
+        self.add_object('toy_table', '3D_Dollhouse_TablePurple', pos=[0.0, 0.1, 0.01], rpy=[0, 0, -80], scale=[3.0, 4.0, 2.0], mass=10.0)
+        self.add_object('shoe_right', 'Womens_Bluefish_2Eye_Boat_Shoe_in_Linen_Natural_Sparkle_Suede_w34KNQ41csH', pos=[0.2, -0.2, 0.01], rpy=[0, 0, 0], scale=[0.65, 0.65, 0.65], mass=0.3)
+        self.add_object('shoe_left', 'Womens_Bluefish_2Eye_Boat_Shoe_in_Linen_Natural_Sparkle_Suede_w34KNQ41csH', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, -90], scale=[0.65, 0.65, 0.65], mass=0.3)
+
+        self.instruction = 'Pick up the brown shoes and put them side by side on the purple table'
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2)
+        tabletop_pos = np.array([0.0, 0.1, 0.01])
+        tabletop_pos[:2] += random_vector * 0.01
+        tabletop_rpy = np.array([-100/180.0*np.pi, 0, 0])
+
+        shoe_right_pos = np.array([0.15, -0.15, 0.01])
+        random_vector = np.random.randn(2)
+        shoe_right_pos[:2] += random_vector * 0.05
+        shoe_right_rpy = np.array([-np.pi, 0, 0])
+        random_vector = np.random.randn(1)
+        shoe_right_rpy[0] += random_vector * (1 / 9) * np.pi
+        shoe_left_pos = np.array([-0.15, -0.15, 0.01])
+        random_vector = np.random.randn(2)
+        shoe_left_pos[:2] += random_vector * 0.05
+        shoe_left_rpy = np.array([-90/180.0*np.pi, 0, 0])
+        random_vector = np.random.randn(1)
+        shoe_left_rpy[0] += random_vector * (1 / 9) * np.pi
+        self.set_object_pose(physics, 'toy_table', tabletop_pos, tabletop_rpy)
+        self.set_object_pose(physics, 'shoe_right', shoe_right_pos, shoe_right_rpy)
+        self.set_object_pose(physics, 'shoe_left', shoe_left_pos, shoe_left_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'shoe_right', 'toy_table') and self.get_touch_condition(physics, 'shoe_left', 'toy_table'), 20],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
 
@@ -264,9 +342,17 @@ ALOHA_TASK_CONFIGS = {
         'task_class': DishDrainerNew,
         'episode_len': 10
     },
-    'aloha_lift_box': {
-        'task_class': LiftBox,
+    'aloha_lift_box_new': {
+        'task_class': LiftBoxNew,
         'episode_len': 15,
         'table_color': 'marble'
+    },
+    'aloha_handover_box_new': {
+        'task_class':HandoverBoxNew,
+        'episode_len': 15,
+    },
+    'aloha_shoes_table_new': {
+        'task_class': ShoesTableNew,
+        'episode_len': 15,
     },
 }
