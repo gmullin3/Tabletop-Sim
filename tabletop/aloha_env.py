@@ -27,6 +27,7 @@ class DishDrainer(AlohaTask):
             [self.get_touch_condition(physics, 'drainer', 'plate'), 20],
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
+    
 class HandoverBox(AlohaTask):
     def __init__(self, random=None):
         super().__init__(random=random, single_arm=False) ## always first
@@ -183,6 +184,60 @@ class LiftBox(AlohaTask):
         ]
         # print(f"cond1: {abs(abs(rotation_rpy[0]) - np.pi) <= 0.15}\tcond2: {abs(rotation_rpy[1]) < 0.1}\tcond3: {abs(rotation_rpy[2]) < 0.1}")
         return super().get_reward(physics, reward_condition_list)
+    
+############# Generalization tasks #############
+class DishDrainerNew(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.original_task = 'aloha_dish_drainer' # For benchmark init
+        self.add_object('drainer', 'Poppin_File_Sorter_Pink', pos=[-0.1, 0.1, 0.01], rpy=[0, 0, -60], scale=[0.8, 0.8, 0.8])
+        self.add_object('plate', 'Threshold_Bistro_Ceramic_Dinner_Plate_Ruby_Ring', pos=[0.1, 0, 0.01], rpy=[0, 0, -40], scale=[0.8, 0.8, 0.8], mass=0.2)
+        self.instruction = 'Pick up the dish and put on to the drainer'
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2)
+        plate_pos = np.array([0.15, -0.17, 0.01])
+        plate_pos[:2] += random_vector * 0.015
+        plate_rpy = np.array([0, 0, 0],)
+        self.set_object_pose(physics, 'plate', pos=plate_pos, rpy=plate_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'drainer', 'plate'), 20],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
+    
+class HandoverBoxNew(AlohaTask):
+    def __init__(self, random=None):
+        super().__init__(random=random, single_arm=False) ## always first
+        self.add_object('basket', 'Room_Essentials_Fabric_Cube_Lavender', pos=[0.2, 0.0, 0.01], rpy=[0, 0, -40], scale=[0.6, 0.6, 0.6])
+        self.add_object('box', 'Fresca_Peach_Citrus_Sparkling_Flavored_Soda_12_PK', pos=[-0.2, -0.2, 0.01], rpy=[0, 0, 90], scale=[0.4, 0.25, 0.4], mass=0.3)
+        self.instruction = 'Handover the box and place into the pink basket'
+
+    def initialize_episode(self, physics):
+        random_vector = np.random.randn(2)
+        basket_pos = np.array([0.2, 0.1, 0.01])
+        basket_pos[:2] += random_vector * 0.02
+        basket_rpy = np.array([0.0, 0.0, 0.0],)
+
+        random_vector = np.random.randn(2)
+        box_pos = np.array([-0.2, -0.2, 0.01])
+        box_pos[:2] += random_vector * 0.025
+        box_rpy = np.array([0.0, 0.0, 0.0],)
+        random_vector = np.random.randn(1) / (2 * np.pi)
+        box_rpy[0] += random_vector
+        self.set_object_pose(physics, 'basket', pos=basket_pos, rpy=basket_rpy)
+        self.set_object_pose(physics, 'box', pos=box_pos, rpy=box_rpy)
+        super().initialize_episode(physics) ## always last
+
+    def get_reward(self, physics):
+        ## [condition, counter]
+        reward_condition_list = [
+            [self.get_touch_condition(physics, 'box', 'basket'), 20],
+        ]
+        return super().get_reward(physics, reward_condition_list) ### always first
 
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
@@ -204,5 +259,14 @@ ALOHA_TASK_CONFIGS = {
     'aloha_box_into_pot': {
         'task_class': BoxIntoPot,
         'episode_len': 15,
+    },
+    'aloha_dish_drainer_new': {
+        'task_class': DishDrainerNew,
+        'episode_len': 10
+    },
+    'aloha_lift_box': {
+        'task_class': LiftBox,
+        'episode_len': 15,
+        'table_color': 'marble'
     },
 }
