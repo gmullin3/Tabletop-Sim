@@ -155,7 +155,7 @@ class BoxIntoPot(AlohaTask):
         super().initialize_episode(physics) ## always last
 
     def get_reward(self, physics):
-        corret_pot_moved = abs(self.get_object_pose(physics, self.target_pot)[0][0] - self.pot_poses[self.target_pot][0]) < 0.1 and abs(self.get_object_pose(physics, self.target_pot)[0][1] - self.pot_poses[self.target_pot][1]) < 0.1
+        corret_pot_moved = abs(self.get_object_pose(physics, self.target_pot)[0][0] - self.pot_poses[self.target_pot][0]) > 0.05 and abs(self.get_object_pose(physics, self.target_pot)[0][1] - self.pot_poses[self.target_pot][1]) > 0.05
         ## [condition, counter]
         # Check if the target object is inside the target pot
         target_in_pot = self.get_touch_condition(physics, self.target_object, self.target_pot) and abs(self.get_object_pose(physics, self.target_object)[0][2] - self.get_object_pose(physics, self.target_pot)[0][2]) <= 0.1
