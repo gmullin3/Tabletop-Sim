@@ -388,7 +388,7 @@ ALOHA_TASK_CONFIGS = {
     },
     'aloha_handover_box': {
         'task_class':HandoverBox,
-        'episode_len': 15,
+        'episode_len': 15 ,
     },
     'aloha_shoes_table': {
         'task_class': ShoesTable,
@@ -400,7 +400,7 @@ ALOHA_TASK_CONFIGS = {
     },
     'aloha_box_into_pot': {
         'task_class': BoxIntoPot,
-        'episode_len': 15,
+        'episode_len': 10,
     },
     'aloha_dish_drainer_new': {
         'task_class': DishDrainerNew,
