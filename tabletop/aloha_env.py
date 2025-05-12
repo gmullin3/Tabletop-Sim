@@ -65,6 +65,7 @@ class BoxIntoPot(AlohaTask):
         super().__init__(random=random, single_arm=False) ## always first
 
         self.combination_list = self._generate_combination(num_repeat=1)
+        self.benchmark_info = [self._generate_combination(num_repeat=5)] # NOTE: hard coded.
         self.instruction_template = "Put the {object} into the {pot}"
         self.instruction = None
         self.objects = ['brown box', 'white box', 'yellow box']
@@ -106,6 +107,7 @@ class BoxIntoPot(AlohaTask):
         comb = self.combination_list[idx % len(self.combination_list)]
         self.set_combination(comb)
         self.initialize_episode(physics)
+        physics.step()
         return dm_env.TimeStep(
             step_type=dm_env.StepType.FIRST,
             reward=None,
@@ -153,6 +155,7 @@ class BoxIntoPot(AlohaTask):
         super().initialize_episode(physics) ## always last
 
     def get_reward(self, physics):
+        corret_pot_moved = abs(self.get_object_pose(physics, self.target_pot)[0][0] - self.pot_poses[self.target_pot][0]) < 0.1 and abs(self.get_object_pose(physics, self.target_pot)[0][1] - self.pot_poses[self.target_pot][1]) < 0.1
         ## [condition, counter]
         # Check if the target object is inside the target pot
         target_in_pot = self.get_touch_condition(physics, self.target_object, self.target_pot) and abs(self.get_object_pose(physics, self.target_object)[0][2] - self.get_object_pose(physics, self.target_pot)[0][2]) <= 0.1
@@ -167,6 +170,7 @@ class BoxIntoPot(AlohaTask):
                     break
         
         reward_condition_list = [
+            [corret_pot_moved, 20],
             [target_in_pot and others_not_in_pot, 10],
         ]
         # print(f"inst: {self.instruction}\treward: {target_in_pot and others_not_in_pot}")
@@ -376,6 +380,7 @@ class ShoesTableNew(AlohaTask):
         ]
         return super().get_reward(physics, reward_condition_list) ### always first
 
+# NOTE: episode_len is actually seconds. so actual episode_len will be episode_len / DT
 ALOHA_TASK_CONFIGS = {
     'aloha_dish_drainer': {
         'task_class': DishDrainer,
