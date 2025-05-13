@@ -65,7 +65,7 @@ class BoxIntoPot(AlohaTask):
         super().__init__(random=random, single_arm=False) ## always first
 
         self.combination_list = self._generate_combination(num_repeat=1)
-        self.benchmark_info = [self._generate_combination(num_repeat=5)] # NOTE: hard coded.
+        self.benchmark_info = self._generate_combination(num_repeat=5) # NOTE: hard coded.
         self.instruction_template = "Put the {object} into the {pot}"
         self.instruction = None
         self.objects = ['brown box', 'white box', 'yellow box']
