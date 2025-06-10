@@ -14,7 +14,7 @@ ALOHA_GRIPPER_OPEN = 0.037
 
 ############################ Helper functions ############################
 ## Assume gripper is normalized to [-1, 1] range, unnorm to [0, 1] range
-ALOHA_GRIPPER_UNNORMALIZE_FN = lambda x: (x * (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE) + ALOHA_GRIPPER_CLOSE + 1) / 2.0
+ALOHA_GRIPPER_UNNORMALIZE_FN = lambda x: (x + 1) / 2 * (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE) + ALOHA_GRIPPER_CLOSE
 
 ## Assume gripper input is normalized to [-1, 1] range
 ALOHA_GRIPPER_NORMALIZE_FN = lambda x: 2 * ((x - ALOHA_GRIPPER_CLOSE) / (ALOHA_GRIPPER_OPEN - ALOHA_GRIPPER_CLOSE) - 0.115) / (1.185 - 0.115) - 1

@@ -64,7 +64,7 @@ class RenderThread(QThread):
                 start_time = time.time()
                 action = self.process_action()
                 self.episode_action.append(action)
-                ts = self.env.step(action[0])
+                ts = self.env.step(action[1])
                 self.reward_signal.emit(np.array([ts.reward, self.env.task.max_reward]))  # Send reward to UI
                 # print('gello',action[1][0:3], action[1][10:13])
                 # RENDER
@@ -99,7 +99,7 @@ class RenderThread(QThread):
         right_grp = self.gello.action['right_gripper_command']
 
         if self.env.task.action_space.split('_')[0] == 'ee':
-            ## Assuming quaternion control
+            ## Assuming 6d control
             if self.task.single_arm:
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]

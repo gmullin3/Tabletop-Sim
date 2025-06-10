@@ -143,5 +143,5 @@ dmypy.json
 .pyre/
 
 *.mp4
-
+*.hdf5
 tabletop/assets/aloha/aloha_temp.xml
