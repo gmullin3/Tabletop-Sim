@@ -38,7 +38,8 @@ def quat_to_6d(w, x, y, z):
     """
     r = Rotation.from_quat([w, x, y, z], scalar_first=True)
     mat = r.as_matrix()
-    return mat[:, :2].flatten()
+    col1, col2 = mat[:, 0], mat[:, 1]
+    return np.concatenate((col1, col2), axis=0)
 
 def sixd_to_quat(sixd):
     """
@@ -50,9 +51,8 @@ def sixd_to_quat(sixd):
     Returns:
         np.ndarray: A quaternion [w, x, y, z].
     """
-    mat = np.zeros((3, 3))
-    mat[:, :2] = sixd.reshape(3, 2)
-    mat[:, 2] = np.cross(mat[:, 0], mat[:, 1])
+    col1, col2 = sixd[:3], sixd[3:]
+    mat = np.column_stack((col1, col2, np.cross(col1, col2)))
     r = Rotation.from_matrix(mat)
     return r.as_quat(scalar_first=True)
 
