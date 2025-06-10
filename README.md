@@ -36,6 +36,12 @@ ts = env.step(action)
 4. ``aloha_lift_box`` ✅
 5. ``aloha_box_into_pot_easy`` ✅
 
+OOD tasks
+1. ``aloha_dish_drainer_new``
+2. ``aloha_handover_box_new``
+3. ``aloha_shoes_table_new`` 
+4. ``aloha_lift_box_new``
+
 ### 🤜 Single Arm Tasks
 
 TBD

@@ -1,1 +1,0 @@
-**Tabletop-SIM RLDS Dataset**
