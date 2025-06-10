@@ -127,9 +127,10 @@ python scripts/replay_episdoes.py -t aloha_dish_drainer -n 30
 If you feel this useful, please cite this work with:
 ```bibtex
 @misc{im2025tabletop,
-    author = {Hokyun, Im},
-    title = {Tabletop Simulation}
-    howpublished = "\url{https://github.com/jellyho/Tabletop-Sim}",
-    year = {2025}
+    author   = {Hokyun, Im},
+    title    = {Tabletop Simulation},
+    url      = {https://github.com/jellyho/Tabletop-Sim},
+    year     = {2025},
+    note     = {GitHub repository}
 }
 ```

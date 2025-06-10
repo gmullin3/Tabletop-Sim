@@ -116,9 +116,9 @@ class RenderThread(QThread):
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
                 right_quat = right_pos[3:7]
-                action_ee_quat = np.concatenate([right_xyz, right_quat, 1 - right_grp])
+                action_ee_quat = np.concatenate([right_xyz, right_quat, - right_grp])
                 right_6d = quat_to_6d(*right_quat)
-                action_ee_6d = np.concatenate([right_xyz, right_6d, 1 - right_grp])
+                action_ee_6d = np.concatenate([right_xyz, right_6d, - right_grp])
             else:
                 left_pos = self.gello.action['left_pose']
                 left_xyz = left_pos[:3]
@@ -126,10 +126,10 @@ class RenderThread(QThread):
                 right_pos = self.gello.action['right_pose']
                 right_xyz = right_pos[:3]
                 right_quat = right_pos[3:7]
-                action_ee_quat = np.concatenate([left_xyz, left_quat, 1 - left_grp, right_xyz, right_quat, 1 - right_grp])
+                action_ee_quat = np.concatenate([left_xyz, left_quat, - left_grp, right_xyz, right_quat, - right_grp])
                 left_6d = quat_to_6d(*left_quat)
                 right_6d = quat_to_6d(*right_quat)
-                action_ee_6d = np.concatenate([left_xyz, left_6d, 1 - left_grp, right_xyz, right_6d, 1 - right_grp])
+                action_ee_6d = np.concatenate([left_xyz, left_6d, - left_grp, right_xyz, right_6d, - right_grp])
             return action_ee_quat, action_ee_6d
         else:
             if self.task.single_arm:
@@ -139,7 +139,7 @@ class RenderThread(QThread):
                 right_joint[0] = right_joint[0] - np.pi / 2
                 right_joint[1] = right_joint[1] - np.pi / 2
                 right_joint[2] = right_joint[2] + np.pi / 2
-                action_joint_pos = np.concatenate([right_joint, 1 - right_grp])
+                action_joint_pos = np.concatenate([right_joint, - right_grp])
             else:
                 # Joint control
                 left_joint = self.gello.action['left_qpos']
@@ -154,7 +154,7 @@ class RenderThread(QThread):
                 right_joint[1] = right_joint[1] - np.pi / 2
                 left_joint[2] = left_joint[2] + np.pi / 2
                 right_joint[2] = right_joint[2] + np.pi / 2
-                action_joint_pos = np.concatenate([left_joint, 1 - left_grp, right_joint, 1 - right_grp])
+                action_joint_pos = np.concatenate([left_joint, - left_grp, right_joint, - right_grp])
             return action_joint_pos, _
 
     def save_demo(self):

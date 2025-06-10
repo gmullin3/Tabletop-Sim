@@ -58,7 +58,7 @@ class GelloEnv:
         if msg.data[6] >= 3.0:
             grp = 1.0
         else:
-            grp = 0.0
+            grp = -1.0
         self.action['right_gripper_command'] = np.array([grp])
 
     def left_joint_command_callback(self, msg):
@@ -66,7 +66,7 @@ class GelloEnv:
         if msg.data[6] >= 3.0:
             grp = 1.0
         else:
-            grp = 0.0
+            grp = -1.0
         self.action['left_gripper_command'] = np.array([grp])
 
     def right_pose_command_callback(self, msg):
