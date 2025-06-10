@@ -1,32 +1,35 @@
 # Tabletop Simulation
 This repo is Aloha based mujoco simulation framework to evaluate bimanual policy in simulation.
 
-## Installation
+## 💻 Installation
     pip install -r requirements.txt
     pip install -e .
 
-## Download datasets
+## 🕹️ Example Usage
 
-TBD
+```python
 
-## Task list
-### Biamanual Tasks
+```
+
+## 📝 Task list
+### 🤜🤛 Biamanual Tasks
 1. ``aloha_dish_drainer``
 2. ``aloha_handover_box``
 3. ``aloha_shoes_table``
 4. ``aloha_lift_box``
+5. ``aloha_box_into_pot_easy``
 
-### Single Arm Tasks
-
-TBD
-
-## Example Usage
+### 🤜 Single Arm Tasks
 
 TBD
 
-## Make your own Tasks
+## 🤗 Download datasets
 
-### Task definition
+TBD
+
+## 🔥 Make your own Tasks
+
+### 1. Task definition
 
 You can define your own aloha task in ``tabletop/aloha_env.py``.
 
@@ -67,7 +70,7 @@ class TaskName(AlohaTask):
 5. ``get_instruction(self, reward)`` defines the instruction. Since you input reward, you can change the language instruciton by the reward, enabling multi-stage long-horizon task.
 6. Register your task. At the bottom of the ``tabletop/aloha_env.py``, you can see the dictionary ``ALOHA_TASK_CONFIGS``. You can register your task class with the task name, episode_len. Note that this episode_len unit is second, since we are using 20Hz, the total number of timesteps would be ``episode_len * 20``.
 
-### Debugging your task
+### 2. Debugging your task
 You can run ``scripts/env_test.py`` to visualize your task. The visualized image will be saved. There is the grids spaced at 0.05m. Before run this code, make sure you registered at ``ALOHA_TASK_CONFIGS`` in ``tabletop/aloha_env.py``.
 
 ```
@@ -76,9 +79,9 @@ python scripts/env_test.py -t aloha_dish_drainer
 
 If you add --reset flag, it will visualize the scene after ``initialize_episode()``
 
-## Demo collection
+## 🎬 Demo collection
 
-### Collecting demos using GELLO
+### 1. Collecting demos using GELLO
 
 We used GELLO for collecting demos inside simulation. You can refer ``scripts/gello_ros.py`` and ``scripts/record_sim_episodes_gello.py``. Change ``scripts/gello_ros.py`` to match your gello ROS setup. Note that we used ROS2 for that.
 
@@ -88,7 +91,7 @@ python scripts/record_sim_episodes_gello.py -t aloha_dish_drainer
 
 By doing this, you can collect demos and save into hdf5 file format.
 
-### Replay collected demos
+### 2. Replay collected demos
 
 You can replay the collected hdf5 file using ``scripts/replay_episodes.py``
 
