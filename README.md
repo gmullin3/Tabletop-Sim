@@ -1,23 +1,40 @@
 # Tabletop Simulation
-This repo is Aloha based mujoco simulation framework to evaluate bimanual policy in simulation.
+This repo is dm_control based bimanual tabletop simulation for benchmarking bimanual robot policies.
 
 ## 💻 Installation
-    pip install -r requirements.txt
-    pip install -e .
+
+```bash
+git clone https://github.com/jellyho/Tabletop-Sim.git --recursive
+
+cd Tabletop-Sim
+pip install -r requirements.txt
+pip install -e .
+```
 
 ## 🕹️ Example Usage
 
 ```python
+import tabletop
 
+# action space can be 'ee_6d_pos', 'ee_quat_pos', 'joint_pos'
+env = tabletop.env('aloha_box_into_pot_easy', 'ee_6d_pos')
+
+ts = env.reset()
+
+# You can start from the same initial position as the dataset. 
+# rollout_id can be between(0 ~ 49) since we have 50 demos per each tasks.
+ts = env.task.benchmark_init(env.physics, rollout_id)
+
+ts = env.step(action)
 ```
 
 ## 📝 Task list
-### 🤜🤛 Biamanual Tasks
-1. ``aloha_dish_drainer``
-2. ``aloha_handover_box``
-3. ``aloha_shoes_table``
-4. ``aloha_lift_box``
-5. ``aloha_box_into_pot_easy``
+### 🤜🤛 Bimanual Tasks (checked if dataset available)
+1. ``aloha_dish_drainer`` ✅
+2. ``aloha_handover_box`` ✅
+3. ``aloha_shoes_table`` ✅
+4. ``aloha_lift_box`` ✅
+5. ``aloha_box_into_pot_easy`` ✅
 
 ### 🤜 Single Arm Tasks
 
