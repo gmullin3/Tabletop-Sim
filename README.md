@@ -29,6 +29,20 @@ ts = env.step(action)
 ```
 
 ## 📝 Task list
+<style>
+.rounded-img {
+    border-radius: 16px;
+    overflow: hidden;
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+</style>
+
+<p align="center">
+    <img src="Tabletop-Sim.png" alt="Tabletop Simulation Example" class="rounded-img"/>
+</p>
+
 ### 🤜🤛 Bimanual Tasks (checked if dataset available)
 1. ``aloha_dish_drainer`` ✅
 2. ``aloha_handover_box`` ✅
@@ -48,7 +62,13 @@ TBD
 
 ## 🤗 Download datasets
 
-TBD
+You can download collected datasets from [huggingface](https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds).
+
+```bash
+git lfs install
+git clone https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds
+git lfs pull
+```
 
 ## 🔥 Make your own Tasks
 
