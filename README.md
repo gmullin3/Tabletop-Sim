@@ -29,19 +29,7 @@ ts = env.step(action)
 ```
 
 ## 📝 Task list
-<style>
-.rounded-img {
-    border-radius: 16px;
-    overflow: hidden;
-    display: inline-block;
-    max-width: 100%;
-    height: auto;
-}
-</style>
-
-<p align="center">
-    <img src="Tabletop-Sim.png" alt="Tabletop Simulation Example" class="rounded-img"/>
-</p>
+![Tabletop Simulation Example](Tabletop-Sim.png)
 
 ### 🤜🤛 Bimanual Tasks (checked if dataset available)
 1. ``aloha_dish_drainer`` ✅
