@@ -52,9 +52,19 @@ TBD
 
 You can download collected datasets from [huggingface](https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds).
 
+RLDS format (20GB)
+
 ```bash
 git lfs install
 git clone https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds
+git lfs pull
+```
+
+HDF5 format (120GB)
+
+```bash
+git lfs install
+git clone https://huggingface.co/datasets/jellyho/tabletop-simulation-hdf5
 git lfs pull
 ```
 
