@@ -11,6 +11,7 @@ BENCHMARK_INFO_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/benchmark_
 
 ALOHA_GRIPPER_CLOSE = 0.009
 ALOHA_GRIPPER_OPEN = 0.037
+# ALOHA_GRIPPER_OPEN = 0.041
 
 ############################ Helper functions ############################
 ## Assume gripper is normalized to [-1, 1] range, unnorm to [0, 1] range
