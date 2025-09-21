@@ -377,7 +377,7 @@ class ShoesTableNew(AlohaTask):
         shoe_left_pos = np.array([-0.15, -0.15, 0.01])
         random_vector = np.random.randn(2)
         shoe_left_pos[:2] += random_vector * 0.05
-        shoe_left_rpy = np.array([0, 0, 0])
+        shoe_left_rpy = np.array([-90/180.0*np.pi, 0, 0])
         random_vector = np.random.randn(1)
         shoe_left_rpy[0] += random_vector * (1 / 9) * np.pi
         self.set_object_pose(physics, 'toy_table', tabletop_pos, tabletop_rpy)
