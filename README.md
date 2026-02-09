@@ -1,5 +1,15 @@
 # Tabletop Simulation
-This repo is dm_control based bimanual tabletop simulation for benchmarking bimanual robot policies.
+This repo is dm_control based bimanual tabletop simulation for benchmarking bimanual robot policies. This simulation was built as part of the TwinVLA (ICLR2026) project.
+
+[![Static Badge](https://img.shields.io/badge/arXiv-2511.05275-red)](https://arxiv.org/)
+[![Static Badge](https://img.shields.io/badge/🤗-Models-yellow)](https://huggingface.co/collections/jellyho/twinvla-685b9563cbdcf830446995ce)
+[![Static Badge](https://img.shields.io/badge/🌍-Project_Page-blue)](https://jellyho.github.io/TwinVLA/)
+![Static Badge](https://img.shields.io/badge/Python-3.10-green)
+
+## 📰 News
+- [2026/02/09] We release the new version of hdf5 dataset which support `joint_pos` officially.
+- [2026/01/26] TwinVLA got accepted to ICLR 2026 🎉
+
 
 ## 💻 Installation
 
@@ -9,6 +19,7 @@ git clone https://github.com/jellyho/Tabletop-Sim.git --recursive
 cd Tabletop-Sim
 pip install -r requirements.txt
 pip install -e .
+pip install 'numpy<2'
 ```
 
 ## 🕹️ Example Usage
@@ -52,21 +63,20 @@ TBD
 
 You can download collected datasets from [huggingface](https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds).
 
-RLDS format (20GB)
+### RLDS format (20GB) (Currently only supports `ee_6d_pos`).
 
 ```bash
-git lfs install
-git clone https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds
-git lfs pull
+hf download --repo-type dataset jellyho/tabletop-simulation-rlds
 ```
 
-HDF5 format (120GB)
+### HDF5 format (120GB) (Supports `ee_6d_pos`, `ee_quat_pos`, `joint_pos`).
 
 ```bash
-git lfs install
-git clone https://huggingface.co/datasets/jellyho/tabletop-simulation-hdf5
-git lfs pull
+hf download --repo-type dataset jellyho/tabletop-simulation-hdf5
 ```
+
+### Lerobot 🤗 format (TBD)
+TBD
 
 ## 🔥 Make your own Tasks
 
@@ -142,13 +152,17 @@ python scripts/replay_episdoes.py -t aloha_dish_drainer -n 30
 
 ## Citation
 
+This simulation was built as part of the [TwinVLA](https://jellyho.github.io/TwinVLA/) project.
+
 If you feel this useful, please cite this work with:
 ```bibtex
-@misc{im2025tabletop,
-    author   = {Hokyun, Im},
-    title    = {Tabletop Simulation},
-    url      = {https://github.com/jellyho/Tabletop-Sim},
-    year     = {2025},
-    note     = {GitHub repository}
+@misc{im2025twinvladataefficientbimanualmanipulation,
+      title={TwinVLA: Data-Efficient Bimanual Manipulation with Twin Single-Arm Vision-Language-Action Models}, 
+      author={Hokyun Im and Euijin Jeong and Jianlong Fu and Andrey Kolobov and Youngwoon Lee},
+      year={2025},
+      eprint={2511.05275},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2511.05275}, 
 }
 ```
