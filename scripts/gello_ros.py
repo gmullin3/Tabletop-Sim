@@ -1,10 +1,9 @@
 from absl import logging
 import rclpy 
-from sensor_msgs.msg import Image, JointState
 from std_msgs.msg import Float64MultiArray, Bool
 import numpy as np
 import threading
-from scipy.spatial.transform import Rotation
+import time
 
 class GelloEnv:
     def __init__(self):
@@ -88,7 +87,10 @@ class GelloEnv:
 if __name__ == '__main__':
     env = GelloEnv()
 
-    while True: 
-        continue
-
-    env.close()
+    try:
+        while True: 
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        env.ros_close()

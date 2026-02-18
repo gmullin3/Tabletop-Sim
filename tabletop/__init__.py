@@ -1,13 +1,25 @@
-from tabletop.aloha_env import ALOHA_TASK_CONFIGS
-from tabletop.constants import *
 import os
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+import numpy as np
 from dm_control import mujoco
 from dm_control.rl import control
-import numpy as np
+
+from tabletop.aloha_env import ALOHA_TASK_CONFIGS
+from tabletop.constants import ALOHA_XML_DIR, BENCHMARK_INFO_DIR, DT
 
 def env(task_name, action_space, test=False):
+    """
+    Create a tabletop simulation environment for a specific task.
+    
+    Args:
+        task_name (str): Name of the task to create.
+        action_space (str): Action space type ('joint_pos', 'ee_quat_pos', 'ee_6d_pos').
+        test (bool): Whether to include grid for testing/debugging.
+        
+    Returns:
+        dm_control.rl.control.Environment: The initialized environment.
+    """
     assert action_space in ['joint_pos', 'ee_quat_pos', 'ee_6d_pos'], f'Invalid action space {action_space}'
     
     ## LOAD XML, ADD Control method, ADD objects

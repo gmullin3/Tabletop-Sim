@@ -1,14 +1,28 @@
 import numpy as np
 import collections
-from tabletop.constants import *
-from tabletop.utils import *
-from tabletop.wrappers import GSOWrapper
-from tabletop.aloha_ik import AlohaIK
 from dm_control.suite import base
 from scipy.spatial.transform import Rotation
 import dm_env
 
+from tabletop.wrappers import GSOWrapper
+from tabletop.aloha_ik import AlohaIK
+from tabletop.constants import (
+    ALOHA_GRIPPER_UNNORMALIZE_FN,
+    ALOHA_GRIPPER_NORMALIZE_FN,
+    ALOHA_GRIPPER_VELOCITY_NORMALIZE_FN
+)
+from tabletop.utils import (
+    sixd_to_quat,
+    rpy_to_quat,
+    quat_to_rpy,
+    quat_to_6d
+)
+
 class AlohaTask(base.Task):
+    """
+    Base class for Aloha tasks in the tabletop simulation.
+    Handles robot initialization, object management, and basic environment interaction.
+    """
     def __init__(self, random=None, single_arm=False, single_arm_dir=None):
         self.obj_dict = {}
         self.obj_id_counter = 0
@@ -27,6 +41,7 @@ class AlohaTask(base.Task):
         super().__init__(random=random)
         
     def state_init(self, physics, state):
+        """Initialize the state of the robot."""
         length = len(state)
         np.copyto(physics.data.qpos[self.robot_offset:self.robot_offset+length], state)
         physics.step()
@@ -38,6 +53,7 @@ class AlohaTask(base.Task):
         )
 
     def benchmark_init(self, physics, idx):
+        """Initialize the environment for benchmarking based on index."""
         assert self.benchmark_info is not None, 'Benchmark info is not set'
         idx = idx % len(self.benchmark_info)
         print(f'Initializing benchmark info {self.benchmark_info[idx]}')
@@ -52,6 +68,7 @@ class AlohaTask(base.Task):
         )
 
     def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0, inertial=[0, 0, 0]):
+        """Add an object to the environment."""
         r = Rotation.from_euler('zyx', rpy, degrees=True)
         quat = np.array(r.as_quat())
         obj = GSOWrapper(name, pos, quat, scale, mass, self.obj_id_counter, inertial=inertial)        
@@ -59,6 +76,7 @@ class AlohaTask(base.Task):
         self.obj_id_counter += 1
 
     def before_step(self, action, physics):
+        """Apply actions before stepping the simulation."""
         if self.single_arm:
             if self.action_space == 'ee_quat_pos':
                 g_right_ctrl = ALOHA_GRIPPER_UNNORMALIZE_FN(action[-1])
@@ -117,26 +135,31 @@ class AlohaTask(base.Task):
                 np.copyto(physics.data.ctrl, np.concatenate([action[:6], [g_left_ctrl], action[7:-1], [g_right_ctrl]]))
 
     def after_step(self, physics):
+        """Update contacts after stepping the simulation."""
         self.update_contact(physics)
 
     def initialize_robots(self, physics):
+        """Set initial robot poses."""
         if self.single_arm:
             np.copyto(physics.data.qpos[:self.robot_offset], np.array([0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084]))
         else:
             np.copyto(physics.data.qpos[:self.robot_offset], np.array([0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084, 0, -0.96, 1.16, 0, -0.3, 0, 0.0084, 0.0084]))
 
     def initialize_episode(self, physics):
+        """Initialize a new episode."""
         self.initialize_robots(physics)
         self.reward = 0
         self.reward_counter = 0
         super().initialize_episode(physics)
 
     def set_object_pose(self, physics, nick, pos=None, rpy=None):
+        """Set an object's pose in the simulation."""
         obj_id = self.obj_dict[nick].id
         joint_id = self.robot_offset + 7 * obj_id
         np.copyto(physics.data.qpos[joint_id:joint_id + 7], np.concatenate([pos, rpy_to_quat(*rpy)]))
 
     def get_object_pose(self, physics, nick):
+        """Get an object's pose from the simulation."""
         obj_id = self.obj_dict[nick].id
         joint_id = self.robot_offset + 7 * obj_id
         pos = physics.data.qpos[joint_id : joint_id + 3].copy()
@@ -144,6 +167,7 @@ class AlohaTask(base.Task):
         return pos, quat
 
     def get_relative_pose(self, physics, target_site, reference_site):
+        """Calculate relative pose between two sites."""
         target_site_name = physics.model.site(target_site).id
         reference_site_name = physics.model.site(reference_site).id
         pos_ref = physics.named.data.site_xpos[reference_site_name].copy()
@@ -163,11 +187,10 @@ class AlohaTask(base.Task):
         relative_rotation = rot_ref_inv @ rot_target
         relative_quaternion = Rotation.from_matrix(relative_rotation).as_quat(scalar_first=True)
 
-        # compensate
-        # relative_position -= np.array([0.19, 0, 0])
         return relative_position, relative_quaternion
 
     def get_qpos(self, physics):
+        """Get robot joint positions."""
         qpos_raw = physics.data.qpos.copy()
         if self.single_arm:
             right_qpos_raw = qpos_raw[:8]
@@ -184,6 +207,7 @@ class AlohaTask(base.Task):
             return np.concatenate([left_arm_qpos, left_gripper_qpos, right_arm_qpos, right_gripper_qpos])
 
     def get_qvel(self, physics):
+        """Get robot joint velocities."""
         qvel_raw = physics.data.qvel.copy()
         if self.single_arm:
             right_qvel_raw = qvel_raw[:8]
@@ -200,6 +224,7 @@ class AlohaTask(base.Task):
             return np.concatenate([left_arm_qvel, left_gripper_qvel, right_arm_qvel, right_gripper_qvel])
 
     def get_eepos(self, physics):
+        """Get end-effector position and quaternion."""
         if self.single_arm:
             ## Fix this to singlearm_dir
             right_ee_pos_raw, right_ee_quat_raw = self.get_relative_pose(
@@ -224,7 +249,6 @@ class AlohaTask(base.Task):
                 f'left/gripper',
                 f'left/actuation_center'
             )
-            # print(left_ee_pos_raw, right_ee_pos_raw)
             qpos_raw = physics.data.qpos.copy()
             left_qpos_raw = qpos_raw[:8]
             right_qpos_raw = qpos_raw[8:16]
@@ -234,6 +258,7 @@ class AlohaTask(base.Task):
             return np.concatenate([left_ee_pos_raw, left_ee_quat_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_quat_raw, right_gripper_qpos])
         
     def get_eepos_rpy(self, physics):
+        """Get end-effector position and RPY."""
         if self.single_arm:
             right_ee_pos_raw, right_ee_quat_raw = self.get_relative_pose(
                 physics,
@@ -267,6 +292,7 @@ class AlohaTask(base.Task):
             return np.concatenate([left_ee_pos_raw, left_ee_rpy_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_rpy_raw, right_gripper_qpos])
         
     def get_eepos_6d(self, physics):
+        """Get end-effector position and 6D orientation."""
         if self.single_arm:
             ## Fix this to singlearm_dir
             right_ee_pos_raw, right_ee_quat_raw = self.get_relative_pose(
@@ -303,9 +329,11 @@ class AlohaTask(base.Task):
             return np.concatenate([left_ee_pos_raw, left_ee_6d_raw, left_gripper_qpos, right_ee_pos_raw, right_ee_6d_raw, right_gripper_qpos])
 
     def get_env_state(self, physics):
+        """Get the state of the environment (objects, etc)."""
         return physics.data.qpos.copy()[self.robot_offset:]
 
     def get_observation(self, physics):
+        """Get the current observation from the environment."""
         # note: it is important to do .copy()
         obs = collections.OrderedDict()
         obs['qpos'] = self.get_qpos(physics)
@@ -324,8 +352,9 @@ class AlohaTask(base.Task):
             obs['images'][f'wrist'] = physics.render(height=240, width=320, camera_id=f'wrist_cam_{self.single_arm_dir}')
         obs['language_instruction'] = self.get_instruction(self.reward)
         return obs
-
+    
     def update_contact(self, physics):
+        """Update contact information from the simulation."""
         self.all_contact_pairs = []
         for i_contact in range(physics.data.ncon):
             id_geom_1 = physics.data.contact[i_contact].geom1
@@ -336,6 +365,7 @@ class AlohaTask(base.Task):
             self.all_contact_pairs.append(contact_pair)
 
     def get_reward(self, physics, reward_condition_list=[[False, 0]]):
+        """Calculate and update the reward based on conditions."""
         self.max_reward = len(reward_condition_list)
         if not self.reward == self.max_reward:
             if reward_condition_list[self.reward][0]:
@@ -349,9 +379,11 @@ class AlohaTask(base.Task):
         return self.reward
     
     def get_instruction(self, reward):
+        """Get the current instruction."""
         return self.instruction
     
-    def get_touch_condition(self, physics, name1, name2): ## Call after update_contact
+    def get_touch_condition(self, physics, name1, name2): 
+        """Check if two objects are touching. Must call after update_contact."""
         name1 = self.get_geoms(physics, name1)
         name2 = self.get_geoms(physics, name2)
         for contact_pair in self.all_contact_pairs:
@@ -361,6 +393,7 @@ class AlohaTask(base.Task):
         return False  # No contact
 
     def get_geoms(self, physics, name):
+        """Get list of geoms for a given object name."""
         if name == 'right_arm':
             geoms = ['right/right_g0', 'right/right_g1', 'right/right_g2', 'right/left_g0', 'right/left_g1', 'right/left_g2']
         elif name == 'left_arm':
@@ -374,12 +407,12 @@ class AlohaTask(base.Task):
         return geoms
 
     def get_pos_condition(self, physics, pos1, pos2, delta=0.1):
+        """Check if two positions are close to each other."""
         return np.linalg.norm(np.array(pos1) - np.array(pos2)) < delta
 
-    def get_rpy_condtion(self, physics, rpy1, rpy2, delta=0.1, mask=[1, 1, 1]):
+    def get_rpy_condition(self, physics, rpy1, rpy2, delta=0.1, mask=[1, 1, 1]):
+        """Check if two orientations (RPY) are close to each other with wrapping."""
         diff = np.abs(np.array(rpy1) - np.array(rpy2))
         diff = np.where(diff > np.pi, 2 * np.pi - diff, diff)  # Handle angle wrapping
         masked_diff = diff * np.array(mask)
         return np.all(masked_diff < delta)
-
-    

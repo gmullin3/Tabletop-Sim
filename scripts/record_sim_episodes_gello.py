@@ -4,17 +4,17 @@ import time
 import numpy as np
 import argparse
 import h5py
-
-from gello_ros import GelloEnv
-from tabletop.constants import *
-import tabletop
-from tabletop.utils import *
 import dm_env
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QGridLayout
+from gello_ros import GelloEnv
+from tabletop.constants import DT
+import tabletop
+from tabletop.utils import quat_to_6d
+
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QImage, QFont
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+from PyQt5.QtCore import QThread, pyqtSignal
 
 class RenderThread(QThread):
     image_signal = pyqtSignal(np.ndarray)
@@ -66,15 +66,14 @@ class RenderThread(QThread):
                 self.episode_action.append(action)
                 ts = self.env.step(action[1])
                 self.reward_signal.emit(np.array([ts.reward, self.env.task.max_reward]))  # Send reward to UI
-                # print('gello',action[1][0:3], action[1][10:13])
                 # RENDER
                 img = self.physics.render(self.height, self.width, camera_id=0)
                 if self.task.single_arm:
                     wrist_img = self.physics.render(240, 320, camera_id=f'wrist_cam_{self.task.single_arm_dir}')
                     img[-240:, -320:] = wrist_img
                 else:
-                    wrist_r = self.physics.render(240, 320, camera_id=f'wrist_cam_right')
-                    wrist_l = self.physics.render(240, 320, camera_id=f'wrist_cam_left')
+                    wrist_r = self.physics.render(240, 320, camera_id='wrist_cam_right')
+                    wrist_l = self.physics.render(240, 320, camera_id='wrist_cam_left')
                     img[-240:, -320:] = wrist_r
                     img[-240:, :320] = wrist_l
                 img = np.ascontiguousarray(img[:self.height, :self.width, :3].astype(np.uint8))
@@ -89,7 +88,7 @@ class RenderThread(QThread):
                     self.terminate_signal = True
 
                 ## Deal with latency
-                delta_time=  time.time() - start_time
+                delta_time = time.time() - start_time
                 time.sleep(DT*2 - delta_time if DT*2 - delta_time > 0 else 0)
             self.reset_flag = False
 
@@ -168,10 +167,10 @@ class RenderThread(QThread):
             data_dict['/actions/ee_6d_pos'] = []
 
         if self.task.single_arm:
-            data_dict[f'/observations/images/wrist'] = []
+            data_dict['/observations/images/wrist'] = []
         else:
-            data_dict[f'/observations/images/wrist_right'] = []
-            data_dict[f'/observations/images/wrist_left'] = []
+            data_dict['/observations/images/wrist_right'] = []
+            data_dict['/observations/images/wrist_left'] = []
             
         max_timesteps = len(self.episode_action)
         for i in range(max_timesteps):
@@ -186,7 +185,7 @@ class RenderThread(QThread):
             data_dict['/observations/images/front'].append(ts.observation['images']['front'])
             data_dict['/observations/images/back'].append(ts.observation['images']['back'])
             if self.task.single_arm:
-                data_dict['/observations/images/wrist'].append(ts.observation['images'][f'wrist'])
+                data_dict['/observations/images/wrist'].append(ts.observation['images']['wrist'])
             else:
                 data_dict['/observations/images/wrist_right'].append(ts.observation['images']['wrist_right'])
                 data_dict['/observations/images/wrist_left'].append(ts.observation['images']['wrist_left'])

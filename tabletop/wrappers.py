@@ -1,8 +1,9 @@
-import numpy as np
-from tabletop.utils import *
 import xml.etree.ElementTree as ET
 
 class GSOWrapper:
+    """
+    Wrapper for Google Scanned Objects (GSO) to generate MuJoCo XML assets.
+    """
     def __init__(self, name, pos, quat=[1, 0, 0, 0], scale=[1, 1, 1], mass=1.0, id=0, inertial=[0, 0, 0]):
         self.name = name
         self.pos = pos
@@ -14,6 +15,7 @@ class GSOWrapper:
         self.inertial = inertial
         
     def generate_xml(self):
+        """Generate the XML element for the object."""
         ## ASSET
         asset = ET.Element("asset")
         ET.SubElement(asset, "texture", type="2d", name=f"{self.name}_texture_{self.id}", file=f"{self.gso_dir}texture.png")
@@ -32,27 +34,12 @@ class GSOWrapper:
         return asset, body
 
     def get_joint_name(self):
+        """Get the joint name for the object."""
         return f'{self.name}_joint_{self.id}'
 
     def get_geoms(self):
+        """Get the list of collision geoms for the object."""
         geoms = []
         for i in range(32):
             geoms.append(f'{self.name}_collision_{i}_{self.id}')
         return geoms
-
-class RewardFunction:
-    def __init__(self, max_reward=4):
-        self.max_reward = 4
-        self.reward = 0
-    
-    def check_reward(self, physics, reward_condition_list):
-        if reward_condition_list[self.reward]:
-            self.reward += 1
-        return self.reward
-    
-
-
-        
-
-
-            

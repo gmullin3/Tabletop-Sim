@@ -1,11 +1,10 @@
-import sys
 import os
 import glob
-import numpy as np
 import argparse
 import h5py
 import tabletop
 from tabletop.utils import save_images_to_video 
+from tqdm import tqdm
 
 def replay(task_name, action_type, mode, episode_dir, save_dir, num_episode=None):
     search_path = os.path.join(episode_dir, task_name, '*.hdf5')
@@ -32,7 +31,6 @@ def replay(task_name, action_type, mode, episode_dir, save_dir, num_episode=None
 
     env = tabletop.env(task_name, action_type)
 
-    from tqdm import tqdm
     succ_list = []
 
     for file_path in tqdm(target_files):
@@ -50,7 +48,7 @@ def replay(task_name, action_type, mode, episode_dir, save_dir, num_episode=None
                 elif mode == 'state':
                     actions = episode[f'/observations/states/{action_type}']
                 
-                ts = env.reset()
+                env.reset()
                 ts = env.task.state_init(env.physics, init_state)
 
                 replay_images = []
