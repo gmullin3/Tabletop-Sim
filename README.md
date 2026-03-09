@@ -60,7 +60,18 @@ TBD
 
 ## 🤗 Download datasets
 
-You can download collected datasets from [huggingface](https://huggingface.co/datasets/jellyho/tabletop-simulation-rlds).
+### Lerobot 🤗 format (Supports `ee_6d_pos`, `ee_quat_pos`, `joint_pos`).
+
+List of the datasets are [here](https://huggingface.co/collections/jellyho/tabletop-sim-datasets).
+
+```bash
+## hf download --repo-type dataset jellyho/task_name
+hf download --repo-type dataset jellyho/aloha_dish_drainer
+hf download --repo-type dataset jellyho/aloha_handover_box
+hf download --repo-type dataset jellyho/aloha_shoes_table
+hf download --repo-type dataset jellyho/aloha_lift_box
+hf download --repo-type dataset jellyho/aloha_box_into_pot_easy
+```
 
 ### RLDS format (20GB) (Currently only supports `ee_6d_pos`).
 
@@ -73,9 +84,6 @@ hf download --repo-type dataset jellyho/tabletop-simulation-rlds
 ```bash
 hf download --repo-type dataset jellyho/tabletop-simulation-hdf5
 ```
-
-### Lerobot 🤗 format (TBD)
-TBD
 
 ## 🔥 Make your own Tasks
 
@@ -155,13 +163,12 @@ This simulation was built as part of the [TwinVLA](https://jellyho.github.io/Twi
 
 If you feel this useful, please cite this work with:
 ```bibtex
-@misc{im2025twinvladataefficientbimanualmanipulation,
-      title={TwinVLA: Data-Efficient Bimanual Manipulation with Twin Single-Arm Vision-Language-Action Models}, 
-      author={Hokyun Im and Euijin Jeong and Jianlong Fu and Andrey Kolobov and Youngwoon Lee},
-      year={2025},
-      eprint={2511.05275},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO},
-      url={https://arxiv.org/abs/2511.05275}, 
+@inproceedings{
+im2026twinvla,
+title={Twin{VLA}: Data-Efficient Bimanual Manipulation with Twin Single-Arm Vision-Language-Action Models},
+author={Hokyun Im and Euijin Jeong and Andrey Kolobov and Jianlong Fu and Youngwoon Lee},
+booktitle={The Fourteenth International Conference on Learning Representations},
+year={2026},
+url={https://openreview.net/forum?id=jG9W6nAwVz}
 }
 ```

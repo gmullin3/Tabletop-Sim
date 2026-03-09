@@ -69,7 +69,7 @@ class AlohaTask(base.Task):
 
     def add_object(self, nick, name, pos=[0, 0, 0.02], rpy=[0, 0, 0], scale=[1, 1, 1], mass=1.0, inertial=[0, 0, 0]):
         """Add an object to the environment."""
-        r = Rotation.from_euler('zyx', rpy, degrees=True)
+        r = Rotation.from_euler('XYZ', rpy, degrees=True)
         quat = np.array(r.as_quat())
         obj = GSOWrapper(name, pos, quat, scale, mass, self.obj_id_counter, inertial=inertial)        
         self.obj_dict[nick] = obj
@@ -344,7 +344,7 @@ class AlohaTask(base.Task):
         obs['env_state'] = self.get_env_state(physics)
         obs['images'] = dict()
         obs['images']['back'] = physics.render(height=480, width=640, camera_id='teleoperator_pov')
-        obs['images']['front'] = physics.render(height=480, width=640, camera_id='collaborator_pov')
+        # obs['images']['front'] = physics.render(height=480, width=640, camera_id='collaborator_pov')
         if not self.single_arm:
             obs['images']['wrist_left'] = physics.render(height=240, width=320, camera_id='wrist_cam_left')
             obs['images']['wrist_right'] = physics.render(height=240, width=320, camera_id='wrist_cam_right')
