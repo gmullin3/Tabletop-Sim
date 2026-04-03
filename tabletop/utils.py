@@ -3,21 +3,17 @@ import cv2
 from scipy.spatial.transform import Rotation
 
 def quat_to_rpy(w, x, y, z, mode='abs'):
-    """Convert quaternion [w, x, y, z] to Euler angles [Roll, Pitch, Yaw] in radians.
-    Roll = rotation about X-axis, Pitch = rotation about Y-axis, Yaw = rotation about Z-axis.
-    """
+    """Convert quaternion [w, x, y, z] to Euler angles [Roll, Pitch, Yaw] in radians."""
     try:
         r = Rotation.from_quat([w, x, y, z], scalar_first=True)
     except:
         return np.array([0.0, 0.0, 0.0])
-    return np.array(r.as_euler('XYZ', degrees=False))
+    return np.array(r.as_euler('zyx', degrees=False))
 
 def rpy_to_quat(roll, pitch, yaw, degrees=False):
-    """Convert Euler angles [Roll, Pitch, Yaw] to quaternion [w, x, y, z].
-    Roll = rotation about X-axis, Pitch = rotation about Y-axis, Yaw = rotation about Z-axis.
-    """
+    """Convert Euler angles [Roll, Pitch, Yaw] to quaternion [w, x, y, z]."""
     try:
-        r = Rotation.from_euler('XYZ', [roll, pitch, yaw], degrees=degrees)
+        r = Rotation.from_euler('zyx', [roll, pitch, yaw], degrees=degrees)
     except:
         return np.array([0.0, 0.0, 0.0, 0.0])
     return np.array(r.as_quat(scalar_first=True))

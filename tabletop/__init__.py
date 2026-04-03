@@ -1,4 +1,5 @@
 import os
+import tempfile
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import numpy as np
@@ -61,9 +62,15 @@ def env(task_name, action_space, test=False):
     rough_string = ET.tostring(root, encoding="unicode")
     parsed = minidom.parseString(rough_string)
     output_xml = parsed.toprettyxml(indent="  ")
-    with open(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'), "w", encoding="utf-8") as f:
-        f.write(output_xml)
-    physics = mujoco.Physics.from_xml_path(os.path.join(ALOHA_XML_DIR, 'aloha_temp.xml'))
+    # Use a per-call temp file to avoid race conditions when creating
+    # multiple environments in parallel subprocesses.
+    fd, tmp_path = tempfile.mkstemp(suffix='.xml', dir=ALOHA_XML_DIR)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(output_xml)
+        physics = mujoco.Physics.from_xml_path(tmp_path)
+    finally:
+        os.unlink(tmp_path)
     task.action_space = action_space
     task.time_limit = ALOHA_TASK_CONFIGS[task_name]['episode_len']
     original_task = getattr(task, 'original_task', False)
